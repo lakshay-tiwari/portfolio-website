@@ -31,6 +31,7 @@ export const skillCategories: SkillCategory[] = [
       { name: "React" },
       { name: "Next.js" },
       { name: "Tailwind CSS" },
+      { name: "Component Library" },
     ],
   },
   {
@@ -40,8 +41,12 @@ export const skillCategories: SkillCategory[] = [
     skills: [
       { name: "Node.js" },
       { name: "FastAPI" },
+      { name: "WebSockets" },
+      { name: "WebRTC" },
       { name: "PostgreSQL" },
       { name: "Redis" },
+      { name: "Prisma" },
+      { name: "Mongoose" },
       // { name: "GraphQL" },
       // { name: "tRPC" },
     ],
@@ -79,7 +84,8 @@ export const skillCategories: SkillCategory[] = [
     skills: [
       { name: "Docker" },
       // { name: "Kubernetes" },
-      { name: "AWS" },
+      { name: "AWS EC2" },
+      { name: "AWS S3 Storage" },
       // { name: "GCP" },
       { name: "CI/CD" },
       // { name: "Terraform" },

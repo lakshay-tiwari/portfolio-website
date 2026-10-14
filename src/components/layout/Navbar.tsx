@@ -55,9 +55,8 @@ export function Navbar() {
   return (
     <>
       <header
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-          scrolled ? "glass shadow-sm" : "bg-transparent"
-        }`}
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? "glass shadow-sm" : "bg-transparent"
+          }`}
       >
         <nav className="section-container relative flex items-center justify-between h-16 md:h-20 after:absolute after:left-1/2 after:-bottom-px after:-translate-x-1/2 after:w-screen after:h-px after:bg-white/70 dark:after:bg-[#0a0a0f]/80 after:backdrop-blur-xl after:pointer-events-none after:transition-colors after:duration-500">
           <Link to="/" className="flex items-center gap-2 group">
@@ -74,11 +73,10 @@ export function Navbar() {
                   key={item.label}
                   href={item.href}
                   onClick={(e) => handleNavClick(e, item.href)}
-                  className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors cursor-pointer ${
-                    isActive(item.href)
-                      ? "text-primary-600 dark:text-primary-400"
-                      : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
-                  }`}
+                  className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors cursor-pointer ${isActive(item.href)
+                    ? "text-primary-600 dark:text-primary-400"
+                    : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+                    }`}
                 >
                   {item.label}
                 </a>
@@ -86,11 +84,10 @@ export function Navbar() {
                 <Link
                   key={item.label}
                   to={item.href}
-                  className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
-                    isActive(item.href)
-                      ? "text-primary-600 dark:text-primary-400"
-                      : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
-                  }`}
+                  className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${isActive(item.href)
+                    ? "text-primary-600 dark:text-primary-400"
+                    : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+                    }`}
                 >
                   {item.label}
                 </Link>
