@@ -1,16 +1,21 @@
-import { Github, Linkedin, Twitter, BookOpen, Mail, type LucideIcon, Code2 } from "lucide-react";
+import type { ComponentType, SVGProps } from "react";
+import { Linkedin, Mail, type LucideIcon } from "lucide-react";
+import { GitHubIcon } from "@/components/icons/GitHubIcon";
+import { XIcon } from "@/components/icons/XIcon";
+import { LeetCodeIcon } from "@/components/icons/LeetCodeIcon";
+import { MediumIcon } from "@/components/icons/MediumIcon";
 
 export type SocialLink = {
   name: string;
   href: string;
-  icon: LucideIcon;
+  icon: LucideIcon | ComponentType<SVGProps<SVGSVGElement>>;
 };
 
 export const socialLinks: SocialLink[] = [
   {
     name: "GitHub",
     href: "https://github.com/lakshay-tiwari/",
-    icon: Github,
+    icon: GitHubIcon,
   },
   {
     name: "LinkedIn",
@@ -20,12 +25,12 @@ export const socialLinks: SocialLink[] = [
   {
     name: "X",
     href: "https://x.com/Lakshya_tiwari_/",
-    icon: Twitter,
+    icon: XIcon,
   },
   {
     name: "Medium",
     href: "https://medium.com",
-    icon: BookOpen,
+    icon: MediumIcon,
   },
   {
     name: "Email",
@@ -35,6 +40,6 @@ export const socialLinks: SocialLink[] = [
   {
     name: "Leetcode",
     href: "https://leetcode.com/u/lakshya_tiwari/",
-    icon: Code2,
+    icon: LeetCodeIcon,
   }
 ];

@@ -1,4 +1,5 @@
-import { ExternalLink, Github, FileText } from "lucide-react";
+import { ExternalLink, FileText } from "lucide-react";
+import { GitHubIcon } from "@/components/icons/GitHubIcon";
 import type { Project } from "@/data/projects";
 
 type ProjectLinksProps = {
@@ -19,7 +20,7 @@ export function ProjectLinks({ project, size = "md" }: ProjectLinksProps) {
         aria-label={`${project.title} on GitHub`}
         className={`${btnSize} rounded-lg text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/10 transition-colors`}
       >
-        <Github className={sizeClasses} />
+        <GitHubIcon className={sizeClasses} />
       </a>
       <a
         href={project.notion}
