@@ -6,8 +6,8 @@ const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "
 
 function getIntensityClass(count: number): string {
   if (count === 0) return "bg-gray-100 dark:bg-white/5";
-  if (count <= 2) return "bg-primary-200 dark:bg-primary-900";
-  if (count <= 4) return "bg-primary-400 dark:bg-primary-700";
+  if (count <= 2) return "bg-primary-200 dark:bg-primary-900/60";
+  if (count <= 4) return "bg-primary-400 dark:bg-primary-700/70";
   if (count <= 6) return "bg-primary-500 dark:bg-primary-500";
   return "bg-primary-600 dark:bg-primary-400";
 }
@@ -21,21 +21,21 @@ export function CodingActivity() {
   }
 
   return (
-    <section id="activity" className="section-padding section-ambient">
+    <section id="activity" className="py-10 md:py-16 relative">
       <div className="section-container">
         <Reveal>
-          <div className="mb-10 md:mb-16">
-            <span className="text-xs sm:text-sm font-mono font-semibold tracking-wider uppercase text-primary-600 dark:text-primary-400">
-              04. What I've Done
+          <div className="mb-6 sm:mb-8">
+            <span className="text-xs font-mono font-semibold tracking-wider uppercase text-primary-600 dark:text-primary-400">
+              Activity
             </span>
-            <h2 className="mt-2 text-2xl md:text-4xl font-display font-bold text-gray-900 dark:text-white">
+            <h2 className="mt-1 text-2xl sm:text-3xl md:text-4xl font-display font-bold text-gray-900 dark:text-white">
               Coding Activity
             </h2>
           </div>
         </Reveal>
 
         <Reveal delay={100}>
-          <div className="card-base p-4 sm:p-6 md:p-8">
+          <div className="rounded-3xl border border-dashed border-gray-300/90 dark:border-white/15 p-4 sm:p-6 md:p-8 bg-white/40 dark:bg-white/[0.02] backdrop-blur-sm shadow-sm">
             <div className="grid grid-cols-3 gap-3 sm:gap-4 mb-6 md:mb-8">
               <div>
                 <p className="text-xl sm:text-2xl md:text-3xl font-display font-bold text-primary-600 dark:text-primary-400">
@@ -101,7 +101,7 @@ export function CodingActivity() {
             </div>
 
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mt-5 md:mt-6 gap-2">
-              <span className="text-sm text-gray-500 dark:text-gray-400">Past 12 months</span>
+              <span className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">Past 12 months</span>
               <div className="flex items-center gap-1.5">
                 <span className="text-xs text-gray-400 dark:text-gray-500">Less</span>
                 {[0, 2, 4, 6, 8].map((c) => (

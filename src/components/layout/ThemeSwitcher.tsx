@@ -22,12 +22,37 @@ export function ThemeSwitcher() {
 
   return (
     <button
+      type="button"
+      role="switch"
+      aria-checked={dark}
       onClick={toggle}
-      aria-label="Toggle theme"
-      className="relative p-2 rounded-lg text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/5 transition-colors"
+      aria-label={dark ? "Switch to light mode" : "Switch to dark mode"}
+      title={dark ? "Switch to light mode" : "Switch to dark mode"}
+      className="relative inline-flex items-center w-[52px] h-[28px] p-[3px] rounded-full bg-neutral-200/90 dark:bg-[#232328] border border-gray-300/80 dark:border-white/10 hover:border-gray-400 dark:hover:border-white/20 transition-colors duration-300 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-[#0a0a0f] select-none shrink-0"
     >
-      <Sun className={`w-5 h-5 transition-all duration-300 ${dark ? "scale-0 -rotate-90 opacity-0" : "scale-100 rotate-0 opacity-100"}`} />
-      <Moon className={`w-5 h-5 absolute top-2 left-2 transition-all duration-300 ${dark ? "scale-100 rotate-0 opacity-100" : "scale-0 rotate-90 opacity-0"}`} />
+      <span
+        className={`relative flex items-center justify-center w-[22px] h-[22px] rounded-full transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] motion-reduce:transition-none ${
+          dark
+            ? "translate-x-[24px] bg-[#18181c] border border-white/10 shadow-[0_1px_3px_rgba(0,0,0,0.4)]"
+            : "translate-x-0 bg-white border border-black/5 shadow-[0_1px_3px_rgba(0,0,0,0.15)]"
+        }`}
+      >
+        {/* Sun Icon (Light Mode) */}
+        <Sun
+          className={`absolute w-3.5 h-3.5 text-amber-500 transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] motion-reduce:transition-none ${
+            dark ? "opacity-0 -rotate-90 scale-50" : "opacity-100 rotate-0 scale-100"
+          }`}
+          strokeWidth={2}
+        />
+
+        {/* Moon Icon (Dark Mode) */}
+        <Moon
+          className={`absolute w-3.5 h-3.5 text-white/95 transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] motion-reduce:transition-none ${
+            dark ? "opacity-100 rotate-0 scale-100" : "opacity-0 rotate-90 scale-50"
+          }`}
+          strokeWidth={2}
+        />
+      </span>
     </button>
   );
 }

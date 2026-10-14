@@ -22,7 +22,7 @@ export const projects: Project[] = [
     notion: "https://notion.so",
     live: "https://example.com",
     featured: true,
-    layout: "image-right",
+    layout: "image-left",
   },
   {
     title: "KeyCrypt",
@@ -34,21 +34,21 @@ export const projects: Project[] = [
     github: "https://github.com",
     notion: "https://notion.so",
     featured: true,
-    layout: "image-right",
+    layout: "image-left",
   },
-  {
-    title: "Droply",
-    description:
-      "A real-time food delivery platform with live order tracking, driver dispatch, and a restaurant management dashboard. Handles thousands of concurrent connections via WebSocket.",
-    image:
-      "https://images.pexels.com/photos/4392044/pexels-photo-4392044.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
-    technologies: ["Next.js", "Socket.io", "Redis", "PostgreSQL"],
-    github: "https://github.com",
-    notion: "https://notion.so",
-    live: "https://example.com",
-    featured: true,
-    layout: "image-right",
-  },
+  // {
+  //   title: "Droply",
+  //   description:
+  //     "A real-time food delivery platform with live order tracking, driver dispatch, and a restaurant management dashboard. Handles thousands of concurrent connections via WebSocket.",
+  //   image:
+  //     "https://images.pexels.com/photos/4392044/pexels-photo-4392044.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+  //   technologies: ["Next.js", "Socket.io", "Redis", "PostgreSQL"],
+  //   github: "https://github.com",
+  //   notion: "https://notion.so",
+  //   live: "https://example.com",
+  //   featured: true,
+  //   layout: "image-right",
+  // },
   // {
   //   title: "Pulse Analytics",
   //   description:

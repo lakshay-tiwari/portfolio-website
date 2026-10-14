@@ -57,36 +57,48 @@ export function Navbar() {
 
   // Track active section and scroll state
   useEffect(() => {
+    let rafId: number | null = null;
+
     const handleScroll = () => {
-      setScrolled(window.scrollY > 20);
+      if (rafId !== null) return;
 
-      // Top of page -> #main
-      if (window.scrollY < 120) {
-        setActiveSection("#main");
-        return;
-      }
+      rafId = requestAnimationFrame(() => {
+        rafId = null;
 
-      // Bottom of page -> #contact
-      if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 80) {
-        setActiveSection("#contact");
-        return;
-      }
+        const isScrolled = window.scrollY > 20;
+        setScrolled((prev) => (prev !== isScrolled ? isScrolled : prev));
 
-      const sectionIds = ["contact", "skills", "projects", "experience", "main"];
-      const scrollPosition = window.scrollY + 220;
-
-      for (const id of sectionIds) {
-        const el = document.getElementById(id);
-        if (el && scrollPosition >= el.offsetTop) {
-          setActiveSection(`#${id}`);
-          break;
+        // Top of page -> #main
+        if (window.scrollY < 120) {
+          setActiveSection((prev) => (prev !== "#main" ? "#main" : prev));
+          return;
         }
-      }
+
+        // Bottom of page -> #contact
+        if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 80) {
+          setActiveSection((prev) => (prev !== "#contact" ? "#contact" : prev));
+          return;
+        }
+
+        const sectionIds = ["contact", "skills", "projects", "experience", "main"];
+        const scrollPosition = window.scrollY + 220;
+
+        for (const id of sectionIds) {
+          const el = document.getElementById(id);
+          if (el && scrollPosition >= el.offsetTop) {
+            setActiveSection((prev) => (prev !== `#${id}` ? `#${id}` : prev));
+            break;
+          }
+        }
+      });
     };
 
     window.addEventListener("scroll", handleScroll, { passive: true });
     handleScroll();
-    return () => window.removeEventListener("scroll", handleScroll);
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      if (rafId !== null) cancelAnimationFrame(rafId);
+    };
   }, []);
 
   // Update sliding indicator whenever active section or hovered item changes
@@ -149,8 +161,10 @@ export function Navbar() {
   return (
     <>
       <header
-        className={`fixed top-0 left-0 right-0 z-50 w-full backdrop-blur-xl bg-white/80 dark:bg-[#0a0a0f]/80 border-b border-gray-200/80 dark:border-white/10 transition-all duration-300 ${
-          scrolled ? "shadow-sm" : ""
+        className={`fixed top-0 left-0 right-0 z-50 w-full border-b navbar-glass ${
+          scrolled
+            ? "bg-white/80 dark:bg-[#0a0a0f]/80 backdrop-blur-xl border-gray-200/80 dark:border-white/10 shadow-sm"
+            : "bg-white/0 dark:bg-[#0a0a0f]/0 backdrop-blur-none border-gray-200/0 dark:border-white/0 shadow-none"
         }`}
       >
         <div className="section-container flex items-center justify-between h-16 md:h-20">
@@ -190,32 +204,10 @@ export function Navbar() {
               const active = isActive(item.href);
               const isHovered = hoveredHref === item.href;
               const isCurrentTarget = isHovered || (!hoveredHref && active);
-              const Component = isHashLink(item.href) ? "a" : Link;
-              const linkProps = isHashLink(item.href)
-                ? {
-                    href: item.href,
-                    onClick: (e: MouseEvent<HTMLAnchorElement>) => handleNavClick(e, item.href),
-                  }
-                : { to: item.href };
+              const isHash = isHashLink(item.href);
 
-              return (
-                <Component
-                  key={item.label}
-                  ref={(el) => {
-                    if (el) itemsRef.current.set(item.href, el);
-                    else itemsRef.current.delete(item.href);
-                  }}
-                  onMouseEnter={() => {
-                    setHoveredHref(item.href);
-                    updateIndicatorTo(item.href);
-                  }}
-                  {...(linkProps as any)}
-                  className={`relative z-10 flex items-center gap-2 px-4 py-2.5 translate-y-px text-sm font-medium rounded-full transition-colors duration-200 cursor-pointer select-none ${
-                    isCurrentTarget
-                      ? "text-gray-900 dark:text-white"
-                      : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
-                  }`}
-                >
+              const content = (
+                <>
                   {Icon && (
                     <Icon
                       className={`w-4 h-4 shrink-0 transition-colors duration-200 ${
@@ -229,7 +221,50 @@ export function Navbar() {
                   {active && (
                     <span className="w-1.5 h-1.5 rounded-full bg-primary-500 shadow-[0_0_8px_rgba(16,185,129,0.9)] animate-pulse shrink-0" />
                   )}
-                </Component>
+                </>
+              );
+
+              const itemClass = `relative z-10 flex items-center gap-2 px-4 py-2.5 translate-y-px text-sm font-medium rounded-full transition-colors duration-200 cursor-pointer select-none ${
+                isCurrentTarget
+                  ? "text-gray-900 dark:text-white"
+                  : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+              }`;
+
+              const setRef = (el: HTMLElement | null) => {
+                if (el) itemsRef.current.set(item.href, el);
+                else itemsRef.current.delete(item.href);
+              };
+
+              const onMouseEnter = () => {
+                setHoveredHref(item.href);
+                updateIndicatorTo(item.href);
+              };
+
+              if (isHash) {
+                return (
+                  <a
+                    key={item.label}
+                    ref={setRef}
+                    href={item.href}
+                    onClick={(e) => handleNavClick(e, item.href)}
+                    onMouseEnter={onMouseEnter}
+                    className={itemClass}
+                  >
+                    {content}
+                  </a>
+                );
+              }
+
+              return (
+                <Link
+                  key={item.label}
+                  ref={setRef}
+                  to={item.href}
+                  onMouseEnter={onMouseEnter}
+                  className={itemClass}
+                >
+                  {content}
+                </Link>
               );
             })}
           </nav>
@@ -259,27 +294,10 @@ export function Navbar() {
             {navigationItems.map((item, i) => {
               const Icon = navIcons[item.label];
               const active = isActive(item.href);
-              const Component = isHashLink(item.href) ? "a" : Link;
-              const linkProps = isHashLink(item.href)
-                ? {
-                    href: item.href,
-                    onClick: (e: MouseEvent<HTMLAnchorElement>) => handleNavClick(e, item.href),
-                  }
-                : { to: item.href };
+              const isHash = isHashLink(item.href);
 
-              return (
-                <Component
-                  key={item.label}
-                  {...(linkProps as any)}
-                  className={`flex items-center justify-between px-4 py-3 rounded-2xl text-base font-medium transition-all duration-200 ${
-                    active
-                      ? "text-gray-900 dark:text-white bg-white/90 dark:bg-white/10 shadow-sm"
-                      : "text-gray-700 dark:text-gray-300 hover:bg-black/5 dark:hover:bg-white/5"
-                  }`}
-                  style={{
-                    animation: `fadeInUp 0.3s ease-out ${i * 40}ms both`,
-                  }}
-                >
+              const content = (
+                <>
                   <div className="flex items-center gap-3">
                     {Icon && (
                       <div
@@ -298,7 +316,40 @@ export function Navbar() {
                   {active && (
                     <span className="w-2 h-2 rounded-full bg-primary-500 shadow-[0_0_8px_rgba(16,185,129,0.9)]" />
                   )}
-                </Component>
+                </>
+              );
+
+              const mobileClass = `flex items-center justify-between px-4 py-3 rounded-2xl text-base font-medium transition-all duration-200 ${
+                active
+                  ? "text-gray-900 dark:text-white bg-white/90 dark:bg-white/10 shadow-sm"
+                  : "text-gray-700 dark:text-gray-300 hover:bg-black/5 dark:hover:bg-white/5"
+              }`;
+
+              const style = { animation: `fadeInUp 0.3s ease-out ${i * 40}ms both` };
+
+              if (isHash) {
+                return (
+                  <a
+                    key={item.label}
+                    href={item.href}
+                    onClick={(e) => handleNavClick(e, item.href)}
+                    className={mobileClass}
+                    style={style}
+                  >
+                    {content}
+                  </a>
+                );
+              }
+
+              return (
+                <Link
+                  key={item.label}
+                  to={item.href}
+                  className={mobileClass}
+                  style={style}
+                >
+                  {content}
+                </Link>
               );
             })}
           </div>

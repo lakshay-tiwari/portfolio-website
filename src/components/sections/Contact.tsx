@@ -45,7 +45,7 @@ export function Contact() {
           </div>
         </Reveal>
 
-        <div className="grid lg:grid-cols-5 gap-6 lg:gap-10 max-w-5xl mx-auto">
+        <div className="grid lg:grid-cols-5 gap-6 lg:gap-8 w-full">
           <Reveal delay={100} className="lg:col-span-2">
             <div className="space-y-4 lg:space-y-6">
               <div className="p-4 sm:p-5 card-base card-hover flex flex-col justify-between gap-4">

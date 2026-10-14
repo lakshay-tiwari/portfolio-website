@@ -20,7 +20,7 @@ export function Experience() {
         </Reveal>
 
         <Reveal delay={100}>
-          <div className="max-w-3xl max-w-full">
+          <div className="w-full">
             {experiences.map((exp, i) => (
               <ExperienceItem
                 key={`${exp.company}-${exp.role}`}

@@ -55,7 +55,7 @@
 
 @layer components {
   .section-container {
-    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-12;
+    @apply max-w-4xl mx-auto px-4 sm:px-6;
   }
 
   .section-padding {
@@ -90,6 +90,21 @@
 
   .glass {
     @apply backdrop-blur-xl bg-white/70 dark:bg-[#0a0a0f]/80 border-b border-gray-200/80 dark:border-white/10;
+  }
+
+  .navbar-glass {
+    transition:
+      background-color 350ms ease,
+      border-color 350ms ease,
+      box-shadow 350ms ease,
+      backdrop-filter 350ms ease,
+      -webkit-backdrop-filter 350ms ease;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .navbar-glass {
+      transition: none;
+    }
   }
 
   .section-ambient {

@@ -29,7 +29,7 @@ export default function Blogs() {
             </div>
           </Reveal>
         ) : (
-          <div className="space-y-4 max-w-4xl">
+          <div className="space-y-4 w-full">
             {blogs.map((blog, i) => (
               <Reveal key={blog.url} delay={i * 80}>
                 <BlogItem blog={blog} />
