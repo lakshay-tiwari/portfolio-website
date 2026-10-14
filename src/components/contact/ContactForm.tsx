@@ -99,7 +99,7 @@ export function ContactForm() {
       <button
         type="submit"
         disabled={status === "loading"}
-        className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-primary-600 hover:bg-primary-700 text-white font-medium transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+        className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-primary-600 hover:bg-primary-700 text-white font-medium transition-colors disabled:opacity-60 disabled:cursor-not-allowed active:scale-[0.99]"
       >
         {status === "loading" ? (
           <Loader2 className="w-5 h-5 animate-spin" />

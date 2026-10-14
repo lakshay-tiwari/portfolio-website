@@ -95,7 +95,7 @@ export function Hero() {
                 <img
                   src={siteConfig.profileImage}
                   alt={siteConfig.name}
-                  className="w-full h-full object-cover object-top rounded-full select-none transition-transform duration-500 hover:scale-105"
+                  className="w-full h-full object-cover object-center rounded-full select-none transition-transform duration-500 hover:scale-105"
                   loading="eager"
                 />
               </div>
