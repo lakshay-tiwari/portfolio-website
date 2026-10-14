@@ -34,7 +34,7 @@ export const projects: Project[] = [
     github: "https://github.com",
     notion: "https://notion.so",
     featured: true,
-    layout: "image-left",
+    layout: "image-right",
   },
   {
     title: "Droply",
