@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, type FormEvent } from "react";
 import { Send, CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
 
@@ -99,7 +101,7 @@ export function ContactForm() {
       <button
         type="submit"
         disabled={status === "loading"}
-        className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-primary-600 hover:bg-primary-700 text-white font-medium transition-colors disabled:opacity-60 disabled:cursor-not-allowed active:scale-[0.99]"
+        className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-primary-700 hover:bg-primary-800 dark:bg-primary-700 dark:hover:bg-primary-600 text-white font-semibold transition-colors disabled:opacity-60 disabled:cursor-not-allowed active:scale-[0.99]"
       >
         {status === "loading" ? (
           <Loader2 className="w-5 h-5 animate-spin" />

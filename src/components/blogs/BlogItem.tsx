@@ -10,6 +10,7 @@ export function BlogItem({ blog }: BlogItemProps) {
     year: "numeric",
     month: "short",
     day: "numeric",
+    timeZone: "UTC",
   });
 
   return (

@@ -17,7 +17,7 @@ export function FeaturedProject({ project, index }: FeaturedProjectProps) {
           {project.image ? (
             <ImageReveal
               src={project.image}
-              alt={project.title}
+              alt={`${project.title} — Project preview`}
               className="w-full h-full"
               delay={index * 100}
             >

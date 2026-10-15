@@ -1,3 +1,5 @@
+"use client";
+
 import { useEffect, useRef, useState, type ReactNode } from "react";
 
 type RevealProps = {
@@ -13,6 +15,11 @@ export function Reveal({ children, className = "", delay = 0, y = 24, once = tru
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    if (typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      setVisible(true);
+      return;
+    }
+
     const el = ref.current;
     if (!el) return;
 
@@ -35,7 +42,7 @@ export function Reveal({ children, className = "", delay = 0, y = 24, once = tru
   return (
     <div
       ref={ref}
-      className={className}
+      className={`motion-reduce:!transition-none motion-reduce:!transform-none motion-reduce:!opacity-100 ${className}`}
       style={{
         opacity: visible ? 1 : 0,
         transform: visible ? "translateY(0)" : `translateY(${y}px)`,

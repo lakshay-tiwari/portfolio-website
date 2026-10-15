@@ -9,6 +9,7 @@ export type SiteConfig = {
   resumeUrl: string;
   profileImage: string;
   bannerImage: string;
+  url: string;
 };
 
 export const siteConfig: SiteConfig = {
@@ -26,5 +27,6 @@ export const siteConfig: SiteConfig = {
   resumeUrl: "https://drive.google.com/file/d/1EX3ICYK5DUUC0tsdHYyrKkIfDdyBLffz/view?usp=drive_link",
   profileImage: "/images/profile_image.webp",
   bannerImage: "/images/hero-banner-2.jpg",
+  url: process.env.NEXT_PUBLIC_SITE_URL || "https://lakshyatiwari.com",
 };
 

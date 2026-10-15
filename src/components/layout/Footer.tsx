@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import Link from "next/link";
 import { ArrowUp } from "lucide-react";
 import { socialLinks } from "@/data/social";
 import { siteConfig } from "@/data/site";
@@ -9,7 +9,7 @@ export function Footer() {
       <div className="section-container">
         <div className="flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex flex-col items-center md:items-start gap-2">
-            <Link to="/" className="text-lg font-display font-bold text-gray-900 dark:text-white">
+            <Link href="/" className="text-lg font-display font-bold text-gray-900 dark:text-white">
               {siteConfig.name.split(" ").map((w) => w[0]).join("")}
               <span className="text-primary-500">.</span>
             </Link>
@@ -51,7 +51,7 @@ export function Footer() {
         </div>
 
         <div className="mt-8 pt-8 border-t border-gray-100 dark:border-white/5 text-center text-sm text-gray-400 dark:text-gray-500">
-          <p>
+          <p suppressHydrationWarning>
             © {new Date().getFullYear()} {siteConfig.name}. Built with love
           </p>
         </div>

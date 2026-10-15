@@ -1,5 +1,8 @@
+"use client";
+
 import { useEffect, useRef, useState, type MouseEvent } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
 import { Menu, X, Home, Briefcase, Code2, Sparkles, Mail } from "lucide-react";
 import { navigationItems } from "@/data/navigation";
 import { ThemeSwitcher } from "./ThemeSwitcher";
@@ -30,8 +33,8 @@ export function Navbar() {
   const navRef = useRef<HTMLElement>(null);
   const itemsRef = useRef<Map<string, HTMLElement>>(new Map());
 
-  const location = useLocation();
-  const navigate = useNavigate();
+  const pathname = usePathname();
+  const router = useRouter();
 
   const isHashLink = (href: string) => href.startsWith("#");
 
@@ -124,7 +127,7 @@ export function Navbar() {
 
   useEffect(() => {
     setMobileOpen(false);
-  }, [location.pathname]);
+  }, [pathname]);
 
   useEffect(() => {
     document.body.style.overflow = mobileOpen ? "hidden" : "";
@@ -142,8 +145,8 @@ export function Navbar() {
     setHoveredHref(null);
     updateIndicatorTo(href);
 
-    if (location.pathname !== "/") {
-      navigate("/");
+    if (pathname !== "/") {
+      router.push("/");
       setTimeout(() => {
         document.querySelector(href)?.scrollIntoView({ behavior: "smooth" });
       }, 100);
@@ -153,8 +156,8 @@ export function Navbar() {
   };
 
   const isActive = (href: string) => {
-    if (href.startsWith("/")) return location.pathname === href;
-    if (location.pathname !== "/") return false;
+    if (href.startsWith("/")) return pathname === href;
+    if (pathname !== "/") return false;
     return activeSection === href;
   };
 
@@ -169,7 +172,7 @@ export function Navbar() {
       >
         <div className="section-container flex items-center justify-between h-16 md:h-20">
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-2 group">
+          <Link href="/" className="flex items-center gap-2 group">
             <span className="text-xl font-display font-bold tracking-tight text-gray-900 dark:text-white transition-transform group-hover:scale-105">
               {siteConfig.name.split(" ").map((w) => w[0]).join("")}
               <span className="text-primary-500">.</span>
@@ -259,7 +262,7 @@ export function Navbar() {
                 <Link
                   key={item.label}
                   ref={setRef}
-                  to={item.href}
+                  href={item.href}
                   onMouseEnter={onMouseEnter}
                   className={itemClass}
                 >
@@ -274,7 +277,9 @@ export function Navbar() {
             <ThemeSwitcher />
             <button
               onClick={() => setMobileOpen(!mobileOpen)}
-              aria-label="Toggle menu"
+              aria-label={mobileOpen ? "Close menu" : "Open menu"}
+              aria-expanded={mobileOpen}
+              aria-controls="mobile-navigation-menu"
               className="md:hidden p-2 rounded-lg text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/5 transition-colors"
             >
               {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
@@ -285,7 +290,13 @@ export function Navbar() {
 
       {/* Mobile Menu */}
       {mobileOpen && (
-        <div className="fixed inset-0 z-40 md:hidden bg-black/40 backdrop-blur-md pt-20 px-4 transition-all duration-300 flex flex-col items-center">
+        <div
+          id="mobile-navigation-menu"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Mobile Navigation"
+          className="fixed inset-0 z-40 md:hidden bg-black/40 backdrop-blur-md pt-20 px-4 transition-all duration-300 flex flex-col items-center"
+        >
           <div className="absolute inset-0 -z-10" onClick={() => setMobileOpen(false)} />
 
           <div className="w-full max-w-sm rounded-3xl p-3 bg-white/90 dark:bg-[#0f0f15]/95 backdrop-blur-2xl border border-white/40 dark:border-white/10 shadow-[0_16px_40px_rgba(0,0,0,0.15),inset_0_1px_1px_rgba(255,255,255,0.7)] dark:shadow-[0_16px_40px_rgba(0,0,0,0.6),inset_0_1px_1px_rgba(255,255,255,0.15)] flex flex-col gap-1.5 animate-scale-in">
@@ -344,7 +355,7 @@ export function Navbar() {
               return (
                 <Link
                   key={item.label}
-                  to={item.href}
+                  href={item.href}
                   className={mobileClass}
                   style={style}
                 >

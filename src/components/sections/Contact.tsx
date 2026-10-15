@@ -1,3 +1,5 @@
+"use client";
+
 import { useState } from "react";
 import { Mail, Copy, Check, ExternalLink } from "lucide-react";
 import { Reveal } from "@/components/motion/Reveal";

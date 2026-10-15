@@ -1,3 +1,5 @@
+"use client";
+
 import { useEffect, useRef, useState, type ReactNode } from "react";
 
 type ImageRevealProps = {
@@ -14,6 +16,12 @@ export function ImageReveal({ children, className = "", src, alt, delay = 0 }: I
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    if (typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      setVisible(true);
+      setLoaded(true);
+      return;
+    }
+
     const el = ref.current;
     if (!el) return;
 
@@ -34,7 +42,7 @@ export function ImageReveal({ children, className = "", src, alt, delay = 0 }: I
   return (
     <div
       ref={ref}
-      className={`relative overflow-hidden ${className}`}
+      className={`relative overflow-hidden motion-reduce:!transition-none motion-reduce:!transform-none motion-reduce:!opacity-100 ${className}`}
       style={{
         opacity: visible ? 1 : 0,
         transform: visible ? "scale(1)" : "scale(0.95)",
@@ -46,7 +54,7 @@ export function ImageReveal({ children, className = "", src, alt, delay = 0 }: I
         alt={alt}
         loading="lazy"
         onLoad={() => setLoaded(true)}
-        className={`w-full h-full object-cover transition-all duration-700 ${
+        className={`w-full h-full object-cover transition-all duration-700 motion-reduce:!filter-none motion-reduce:!transform-none ${
           loaded ? "scale-100 blur-0" : "scale-110 blur-xl"
         }`}
       />

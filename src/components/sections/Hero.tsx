@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useEffect, useRef } from "react";
 import { ArrowDown, ArrowUpRight, BadgeCheck, MapPin, ZoomIn } from "lucide-react";
 import { Reveal } from "@/components/motion/Reveal";
@@ -126,7 +128,7 @@ export function Hero() {
             >
               <img
                 src={siteConfig.bannerImage}
-                alt="Profile banner"
+                alt={`${siteConfig.name} profile cover banner`}
                 className="w-full h-full object-cover select-none transition-transform duration-500 group-hover:scale-[1.02]"
                 loading="eager"
               />
@@ -175,7 +177,7 @@ export function Hero() {
               <div className="flex items-center gap-2.5 sm:gap-3 pt-1 sm:pt-0 shrink-0">
                 <a
                   href="#projects"
-                  className="inline-flex items-center gap-1.5 px-4 sm:px-5 py-2 sm:py-2.5 rounded-full bg-primary-600 hover:bg-primary-700 text-white text-xs sm:text-sm font-medium transition-all duration-300 hover:-translate-y-0.5 shadow-md shadow-primary-500/20 active:scale-95"
+                  className="inline-flex items-center gap-1.5 px-4 sm:px-5 py-2 sm:py-2.5 rounded-full bg-primary-700 hover:bg-primary-800 dark:bg-primary-700 dark:hover:bg-primary-600 text-white text-xs sm:text-sm font-semibold transition-all duration-300 hover:-translate-y-0.5 shadow-md shadow-primary-500/20 active:scale-95"
                 >
                   <span>View Projects</span>
                   <ArrowUpRight className="w-4 h-4" />

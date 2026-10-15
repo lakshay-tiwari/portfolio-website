@@ -1,3 +1,5 @@
+"use client";
+
 import { useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { X } from "lucide-react";
@@ -51,13 +53,15 @@ export function ImageViewerModal({
 
     window.addEventListener("keydown", handleKeyDown);
 
+    const currentTrigger = triggerRef?.current;
+
     return () => {
       clearTimeout(timer);
       document.body.style.overflow = originalOverflow;
       window.removeEventListener("keydown", handleKeyDown);
 
       // Restore focus without jumping scroll position
-      const targetToFocus = triggerRef?.current || previousActiveElementRef.current;
+      const targetToFocus = currentTrigger || previousActiveElementRef.current;
       if (targetToFocus && typeof targetToFocus.focus === "function") {
         targetToFocus.focus({ preventScroll: true });
       }
