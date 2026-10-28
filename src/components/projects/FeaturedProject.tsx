@@ -13,16 +13,15 @@ export function FeaturedProject({ project, index }: FeaturedProjectProps) {
   return (
     <article className="grid md:grid-cols-5 gap-6 sm:gap-8 md:gap-10 items-center group/project">
       <div className={`md:col-span-2 ${isImageRight ? "md:order-2" : "md:order-1"}`}>
-        <div className="relative aspect-[4/3] rounded-2xl overflow-hidden border border-gray-200 dark:border-white/10 shadow-lg group-hover/project:shadow-2xl transition-shadow duration-500">
+        <div className="relative aspect-[16/9] rounded-2xl overflow-hidden border border-gray-200 dark:border-white/10 shadow-lg group-hover/project:shadow-2xl transition-shadow duration-500 bg-gray-900/5 dark:bg-white/5">
           {project.image ? (
             <ImageReveal
               src={project.image}
               alt={`${project.title} — Project preview`}
               className="w-full h-full"
+              imageClassName="object-contain w-full h-full"
               delay={index * 100}
-            >
-              <div className="absolute inset-0 bg-gradient-to-tr from-primary-900/20 to-transparent" />
-            </ImageReveal>
+            />
           ) : (
             <div className="w-full h-full bg-gradient-to-br from-primary-500/20 to-accent-500/20" />
           )}

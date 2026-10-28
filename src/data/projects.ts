@@ -15,12 +15,11 @@ export const projects: Project[] = [
     title: "Cortex",
     description:
       "An AI-powered knowledge assistant that uses retrieval-augmented generation to answer questions from your documents. Supports multi-turn conversations, source citations, and streaming responses.",
-    image:
-      "https://images.pexels.com/photos/17483871/pexels-photo-17483871.png?auto=compress&cs=tinysrgb&h=650&w=940",
+    image: "/images/projects/cortex-preview.png",
     technologies: ["Next.js", "FastAPI", "LangGraph", "PostgreSQL", "Qdrant DB", "Neo4j", "LangChain", "Clerk"],
     github: "https://github.com/lakshay-tiwari/github-code-review",
     notion: "https://app.notion.com/p/Cortex-GitHub-Repository-RAG-Platform-40773296e25c80f99667e1bdb8422f21?source=copy_link",
-    live: "https://example.com",
+    // live: "https://example.com",
     featured: true,
     layout: "image-left",
   },
@@ -28,8 +27,7 @@ export const projects: Project[] = [
     title: "KeyCrypt",
     description:
       "A zero-knowledge password manager with end-to-end encryption. Stores credentials locally with client-side crypto, syncs across devices, and includes a built-in breach checker.",
-    image:
-      "https://images.pexels.com/photos/30885763/pexels-photo-30885763.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    image: "/images/projects/keycrypt-preview.png",
     technologies: ["Next.js", "Prisma", "PostgreSQL", "WebCrypto"],
     github: "https://github.com/lakshay-tiwari/keycrypt",
     notion: "https://app.notion.com/p/KeyCrypt-Store-your-secrets-33073296e25c80e39055c6e2b2da14a9?source=copy_link",

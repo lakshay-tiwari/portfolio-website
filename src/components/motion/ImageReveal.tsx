@@ -3,22 +3,28 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 
 type ImageRevealProps = {
-  children: ReactNode;
+  children?: ReactNode;
   className?: string;
   src: string;
   alt: string;
   delay?: number;
+  imageClassName?: string;
 };
 
-export function ImageReveal({ children, className = "", src, alt, delay = 0 }: ImageRevealProps) {
-  const [loaded, setLoaded] = useState(false);
+export function ImageReveal({
+  children,
+  className = "",
+  src,
+  alt,
+  delay = 0,
+  imageClassName = "object-cover",
+}: ImageRevealProps) {
   const [visible, setVisible] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
       setVisible(true);
-      setLoaded(true);
       return;
     }
 
@@ -32,7 +38,7 @@ export function ImageReveal({ children, className = "", src, alt, delay = 0 }: I
           observer.unobserve(el);
         }
       },
-      { threshold: 0.2 }
+      { threshold: 0.05, rootMargin: "100px" }
     );
 
     observer.observe(el);
@@ -45,18 +51,16 @@ export function ImageReveal({ children, className = "", src, alt, delay = 0 }: I
       className={`relative overflow-hidden motion-reduce:!transition-none motion-reduce:!transform-none motion-reduce:!opacity-100 ${className}`}
       style={{
         opacity: visible ? 1 : 0,
-        transform: visible ? "scale(1)" : "scale(0.95)",
-        transition: `opacity 0.6s ease-out ${delay}ms, transform 0.6s ease-out ${delay}ms`,
+        transform: visible ? "scale(1)" : "scale(0.98)",
+        transition: `opacity 0.5s ease-out ${delay}ms, transform 0.5s ease-out ${delay}ms`,
       }}
     >
       <img
         src={src}
         alt={alt}
-        loading="lazy"
-        onLoad={() => setLoaded(true)}
-        className={`w-full h-full object-cover transition-all duration-700 motion-reduce:!filter-none motion-reduce:!transform-none ${
-          loaded ? "scale-100 blur-0" : "scale-110 blur-xl"
-        }`}
+        loading="eager"
+        decoding="async"
+        className={`w-full h-full ${imageClassName}`}
       />
       {children}
     </div>
