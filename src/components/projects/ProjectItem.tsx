@@ -8,7 +8,7 @@ type ProjectItemProps = {
 
 export function ProjectItem({ project }: ProjectItemProps) {
   return (
-    <article className="card-base card-hover group overflow-hidden">
+    <article className="card-base card-hover group/card overflow-hidden">
       {project.image && (
         <div className="relative h-48 overflow-hidden">
           <ImageReveal
@@ -21,7 +21,7 @@ export function ProjectItem({ project }: ProjectItemProps) {
         </div>
       )}
       <div className="p-4 sm:p-6">
-        <h3 className="text-lg font-display font-semibold text-gray-900 dark:text-white mb-2 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
+        <h3 className="text-lg font-display font-semibold text-gray-900 dark:text-white mb-2 group-hover/card:text-primary-600 dark:group-hover/card:text-primary-400 transition-colors">
           {project.title}
         </h3>
         <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed mb-4 line-clamp-3">

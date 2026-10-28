@@ -11,9 +11,9 @@ export function FeaturedProject({ project, index }: FeaturedProjectProps) {
   const isImageRight = project.layout === "image-right";
 
   return (
-    <article className="grid md:grid-cols-5 gap-6 sm:gap-8 md:gap-10 items-center group">
+    <article className="grid md:grid-cols-5 gap-6 sm:gap-8 md:gap-10 items-center group/project">
       <div className={`md:col-span-2 ${isImageRight ? "md:order-2" : "md:order-1"}`}>
-        <div className="relative aspect-[4/3] rounded-2xl overflow-hidden border border-gray-200 dark:border-white/10 shadow-lg group-hover:shadow-2xl transition-shadow duration-500">
+        <div className="relative aspect-[4/3] rounded-2xl overflow-hidden border border-gray-200 dark:border-white/10 shadow-lg group-hover/project:shadow-2xl transition-shadow duration-500">
           {project.image ? (
             <ImageReveal
               src={project.image}
