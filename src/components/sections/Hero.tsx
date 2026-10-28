@@ -124,12 +124,12 @@ export function Hero() {
                 }
               }}
               aria-label="View banner image in full screen"
-              className="group relative w-full aspect-[2.3/1] sm:aspect-[2.5/1] rounded-2xl overflow-hidden border border-gray-200/60 dark:border-white/10 shadow-inner bg-gray-900 cursor-zoom-in focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-[#0a0a0f]"
+              className="group relative w-full aspect-[16/9] sm:aspect-[2.2/1] rounded-2xl overflow-hidden border border-gray-200/60 dark:border-white/10 shadow-inner bg-gray-900 cursor-zoom-in focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-[#0a0a0f]"
             >
               <img
                 src={siteConfig.bannerImage}
                 alt={`${siteConfig.name} profile cover banner`}
-                className="w-full h-full object-cover select-none transition-transform duration-500 group-hover:scale-[1.02]"
+                className="w-full h-full object-cover object-[center_82%] select-none transition-transform duration-500 group-hover:scale-[1.02]"
                 loading="eager"
               />
               {/* Subtle gradient overlay to enhance depth */}

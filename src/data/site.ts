@@ -26,7 +26,7 @@ export const siteConfig: SiteConfig = {
   email: "imlakshya.tiwari@gmail.com",
   resumeUrl: "https://drive.google.com/file/d/1EX3ICYK5DUUC0tsdHYyrKkIfDdyBLffz/view?usp=drive_link",
   profileImage: "/images/profile_image.webp",
-  bannerImage: "/images/hero-banner-2.jpg",
+  bannerImage: "/images/banner-image.jpeg",
   url: process.env.NEXT_PUBLIC_SITE_URL || "https://lakshyatiwari.com",
 };
 
