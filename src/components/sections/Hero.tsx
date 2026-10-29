@@ -115,7 +115,7 @@ export function Hero() {
             {/* Avatar & Action Buttons Row (Overlapping the banner) */}
             <div className="relative z-20 flex flex-col sm:flex-row sm:items-end justify-between gap-4 -mt-10 sm:-mt-14 md:-mt-18 px-2 sm:px-4">
               
-              {/* Overlapping Clickable Profile Avatar with thick accent border & gap */}
+              {/* Overlapping Clickable Profile Avatar */}
               <div
                 ref={avatarTriggerRef}
                 role="button"
@@ -128,7 +128,7 @@ export function Hero() {
                   }
                 }}
                 aria-label={`View ${siteConfig.name}'s profile photo in full screen`}
-                className="group relative w-20 h-20 sm:w-28 sm:h-28 md:w-32 md:h-32 rounded-full p-1 sm:p-1.5 bg-white dark:bg-[#0a0a0f] ring-4 ring-primary-500 dark:ring-primary-400 shadow-xl shrink-0 cursor-zoom-in focus:outline-none focus-visible:ring-4 focus-visible:ring-primary-400 focus-visible:ring-offset-4 dark:focus-visible:ring-offset-[#0a0a0f] transition-transform duration-300 hover:scale-105"
+                className="group relative w-20 h-20 sm:w-28 sm:h-28 md:w-32 md:h-32 rounded-full overflow-hidden shrink-0 cursor-zoom-in focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 transition-transform duration-300 hover:scale-105"
               >
                 <img
                   src={siteConfig.profileImage}
@@ -138,7 +138,7 @@ export function Hero() {
                 />
 
                 {/* Hover overlay with zoom icon */}
-                <div className="absolute inset-1 sm:inset-1.5 rounded-full bg-black/45 backdrop-blur-[2px] text-white flex items-center justify-center opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100 transition-opacity duration-200 pointer-events-none">
+                <div className="absolute inset-0 rounded-full bg-black/45 backdrop-blur-[2px] text-white flex items-center justify-center opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100 transition-opacity duration-200 pointer-events-none">
                   <ZoomIn className="w-5 h-5 sm:w-6 sm:h-6 drop-shadow-md" />
                 </div>
               </div>
