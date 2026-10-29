@@ -102,6 +102,9 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <head>
+        <link rel="alternate" type="text/plain" href="/llms.txt" title="LLMs.txt" />
+        <link rel="alternate" type="application/json" href="/api/portfolio" title="Machine-Readable Portfolio API" />
+        <link rel="alternate" type="text/markdown" href="/for-agents" title="AI Agent Portfolio" />
         <script
           dangerouslySetInnerHTML={{
             __html: `(function(){var d="dark",s=localStorage.getItem("theme"),p=window.matchMedia("(prefers-color-scheme: dark)").matches,isDark=s==="dark"?!0:s==="light"?!1:d==="system"?p:d==="dark";document.documentElement.classList.toggle("dark",isDark)})();`,

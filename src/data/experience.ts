@@ -4,6 +4,7 @@ export type Experience = {
   duration: string;
   location?: string;
   description: string;
+  responsibilities?: string[];
   technologies: string[];
 };
 
@@ -15,6 +16,11 @@ export const experiences: Experience[] = [
     location: "Remote",
     description:
       "Leading development of the analytics and observability platform. Built real-time event ingestion pipelines handling 2B+ events per day. Drove migration to edge-first architecture, cutting p99 latency by 60%.",
+    responsibilities: [
+      "Leading development of the analytics and observability platform.",
+      "Built real-time event ingestion pipelines handling 2B+ events per day.",
+      "Drove migration to edge-first architecture, cutting p99 latency by 60%.",
+    ],
     technologies: ["Next.js", "TypeScript", "React", "Expressjs", "MongoDB"],
   },
   {
@@ -24,6 +30,11 @@ export const experiences: Experience[] = [
     location: "Remote",
     description:
       "Worked on the ChatGPT web application and the API platform. Designed and implemented streaming response infrastructure, conversation memory, and tool-use orchestration. Shipped the plugins system used by millions of users.",
+    responsibilities: [
+      "Worked on web application development and API platforms.",
+      "Designed and implemented streaming response infrastructure, conversation memory, and tool-use orchestration.",
+      "Shipped scalable systems and user-facing workflows used by large user bases.",
+    ],
     technologies: ["Nextjs", "React", "Express.js", "Prisma", "PostgreSQL", "TailwindCSS"],
   },
   // {

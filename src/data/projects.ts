@@ -1,6 +1,8 @@
 export type Project = {
   title: string;
   description: string;
+  problem?: string;
+  keyFeatures?: string[];
   image?: string;
   technologies: string[];
   github: string;
@@ -15,6 +17,15 @@ export const projects: Project[] = [
     title: "Cortex",
     description:
       "An AI-powered knowledge assistant that uses retrieval-augmented generation to answer questions from your documents. Supports multi-turn conversations, source citations, and streaming responses.",
+    problem:
+      "Developers and engineering teams lose significant time navigating large codebases and complex documentation, often receiving ungrounded or hallucinated answers from generic AI assistants.",
+    keyFeatures: [
+      "Multi-turn conversational context with persistent chat history",
+      "Retrieval-Augmented Generation (RAG) with verifiable line-by-line source citations",
+      "Low-latency streaming responses for real-time interaction",
+      "Hybrid vector retrieval with Qdrant DB and relationship graph modeling with Neo4j",
+      "Production-ready authentication and session management with Clerk",
+    ],
     image: "/images/projects/cortex-preview.png",
     technologies: ["Next.js", "FastAPI", "LangGraph", "PostgreSQL", "Qdrant DB", "Neo4j", "LangChain", "Clerk"],
     github: "https://github.com/lakshay-tiwari/github-code-review",
@@ -27,6 +38,14 @@ export const projects: Project[] = [
     title: "KeyCrypt",
     description:
       "A zero-knowledge password manager with end-to-end encryption. Stores credentials locally with client-side crypto, syncs across devices, and includes a built-in breach checker.",
+    problem:
+      "Traditional password management solutions store secrets or encryption keys on centralized servers where vulnerabilities can lead to critical credential compromises.",
+    keyFeatures: [
+      "Zero-knowledge architecture ensuring plaintext credentials never touch servers",
+      "Client-side cryptographic operations leveraging browser WebCrypto APIs",
+      "Encrypted cross-device credential synchronization",
+      "Integrated automated breach checker evaluating credential integrity",
+    ],
     image: "/images/projects/keycrypt-preview.png",
     technologies: ["Next.js", "Prisma", "PostgreSQL", "WebCrypto"],
     github: "https://github.com/lakshay-tiwari/keycrypt",

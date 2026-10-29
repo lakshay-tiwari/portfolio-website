@@ -50,10 +50,25 @@ export function Footer() {
           </a>
         </div>
 
-        <div className="mt-8 pt-8 border-t border-gray-100 dark:border-white/5 text-center text-sm text-gray-400 dark:text-gray-500">
+        <div className="mt-8 pt-8 border-t border-gray-100 dark:border-white/5 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs sm:text-sm text-gray-400 dark:text-gray-500">
           <p suppressHydrationWarning>
             © {new Date().getFullYear()} {siteConfig.name}. Built with love
           </p>
+          <div className="flex items-center gap-3 text-xs font-mono">
+            <Link
+              href="/for-agents"
+              className="hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
+            >
+              For AI Agents
+            </Link>
+            <span className="opacity-40">•</span>
+            <Link
+              href="/llms.txt"
+              className="hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
+            >
+              /llms.txt
+            </Link>
+          </div>
         </div>
       </div>
     </footer>

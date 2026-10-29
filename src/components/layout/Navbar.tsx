@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, type MouseEvent } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Menu, X, Home, Briefcase, Code2, Sparkles, Mail } from "lucide-react";
+import { Menu, X, Home, Briefcase, Code2, Sparkles, Mail, Bot } from "lucide-react";
 import { navigationItems } from "@/data/navigation";
 import { ThemeSwitcher } from "./ThemeSwitcher";
 import { siteConfig } from "@/data/site";
@@ -272,8 +272,21 @@ export function Navbar() {
             })}
           </nav>
 
-          {/* Right: Theme Switcher & Mobile Menu Toggle */}
+          {/* Right: Agents Button, Theme Switcher & Mobile Menu Toggle */}
           <div className="flex items-center gap-2">
+            <Link
+              href="/for-agents"
+              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-mono font-medium border transition-all duration-200 select-none ${
+                pathname === "/for-agents"
+                  ? "bg-primary-500/15 border-primary-500/40 text-primary-600 dark:text-primary-400 shadow-sm"
+                  : "bg-gray-100/90 dark:bg-white/5 border-gray-200/80 dark:border-white/10 text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 hover:border-primary-500/40 hover:bg-primary-500/5 dark:hover:bg-primary-500/10"
+              }`}
+              title="AI Agents & Machine-Readable Profile"
+              aria-label="For AI Agents"
+            >
+              <Bot className="w-3.5 h-3.5 text-primary-500" />
+              <span>Agents</span>
+            </Link>
             <ThemeSwitcher />
             <button
               onClick={() => setMobileOpen(!mobileOpen)}
@@ -363,6 +376,35 @@ export function Navbar() {
                 </Link>
               );
             })}
+
+            {/* Dedicated For Agents Mobile Link */}
+            <div className="pt-1.5 mt-1 border-t border-gray-100 dark:border-white/5">
+              <Link
+                href="/for-agents"
+                onClick={() => setMobileOpen(false)}
+                className={`flex items-center justify-between px-4 py-3 rounded-2xl text-base font-medium transition-all duration-200 ${
+                  pathname === "/for-agents"
+                    ? "text-gray-900 dark:text-white bg-white/90 dark:bg-white/10 shadow-sm"
+                    : "text-gray-700 dark:text-gray-300 hover:bg-black/5 dark:hover:bg-white/5"
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <div
+                    className={`p-2 rounded-xl ${
+                      pathname === "/for-agents"
+                        ? "bg-primary-500/15 text-primary-600 dark:text-primary-400"
+                        : "bg-gray-100 dark:bg-white/5 text-gray-500 dark:text-gray-400"
+                    }`}
+                  >
+                    <Bot className="w-4 h-4 text-primary-500" />
+                  </div>
+                  <span>For Agents</span>
+                </div>
+                <span className="px-2 py-0.5 text-[10px] font-mono rounded bg-primary-500/10 text-primary-600 dark:text-primary-400 border border-primary-500/20">
+                  AI
+                </span>
+              </Link>
+            </div>
           </div>
         </div>
       )}
