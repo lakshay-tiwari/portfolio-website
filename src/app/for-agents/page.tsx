@@ -24,7 +24,7 @@ export default function ForAgentsPage() {
   const data = getPortfolioData();
 
   return (
-    <main className="pt-24 sm:pt-28 pb-16 md:pb-20 min-h-screen section-gradient-cool">
+    <main id="main" className="pt-24 sm:pt-28 pb-16 md:pb-20 min-h-screen section-gradient-cool">
       <div className="section-container">
         {/* Breadcrumb / Top link */}
         <div className="mb-6 flex items-center gap-2 text-xs font-mono text-gray-500 dark:text-gray-400">

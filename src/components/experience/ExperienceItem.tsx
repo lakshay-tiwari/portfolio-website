@@ -34,9 +34,20 @@ export function ExperienceItem({ experience, isLast }: ExperienceItemProps) {
             </span>
           )}
         </div>
-        <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed pt-2 max-w-2xl">
-          {experience.description}
-        </p>
+        {experience.responsibilities && experience.responsibilities.length > 0 ? (
+          <ul className="space-y-1.5 pt-2 max-w-2xl text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
+            {experience.responsibilities.map((resp, idx) => (
+              <li key={idx} className="flex items-start gap-2">
+                <span className="text-primary-500 font-bold mt-1 text-xs shrink-0">•</span>
+                <span className="break-words">{resp}</span>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed pt-2 max-w-2xl">
+            {experience.description}
+          </p>
+        )}
         <div className="flex flex-wrap gap-1.5 pt-2">
           {experience.technologies.map((tech) => (
             <span

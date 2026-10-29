@@ -10,18 +10,27 @@ export type Experience = {
 
 export const experiences: Experience[] = [
   {
-    company: "Adnecto Technologies",
-    role: "Junior Software Engineer",
-    duration: "June 2026 — August 2026 ",
+    company: "Cognify Systems",
+    role: "Full Stack AI Engineer Intern",
+    duration: "April 2026 — November 2026",
     location: "Remote",
     description:
-      "Leading development of the analytics and observability platform. Built real-time event ingestion pipelines handling 2B+ events per day. Drove migration to edge-first architecture, cutting p99 latency by 60%.",
+      "Worked on Node.js backend services and Redis-powered asynchronous job processing to support reliable application workflows. Explored MCP servers and advanced RAG approaches, including Adaptive RAG, Corrective RAG, and Hybrid RAG. Built data ingestion and retrieval pipelines connecting backend services with LLM-powered applications, with Docker for containerization and deployment.",
     responsibilities: [
-      "Leading development of the analytics and observability platform.",
-      "Built real-time event ingestion pipelines handling 2B+ events per day.",
-      "Drove migration to edge-first architecture, cutting p99 latency by 60%.",
+      "Worked on Node.js backend services and Redis-powered asynchronous job processing to support reliable application workflows.",
+      "Explored MCP servers and advanced RAG approaches, including Adaptive RAG, Corrective RAG, and Hybrid RAG.",
+      "Built data ingestion and retrieval pipelines connecting backend services with LLM-powered applications, with Docker for containerization and deployment.",
     ],
-    technologies: ["Next.js", "TypeScript", "React", "Expressjs", "MongoDB"],
+    technologies: [
+      "Node.js",
+      "Redis",
+      "Turborepo",
+      "MCP",
+      "RAG",
+      "Docker",
+      "LLMs",
+      "TypeScript",
+    ],
   },
   {
     company: "Freelancer",
@@ -29,13 +38,19 @@ export const experiences: Experience[] = [
     duration: "January 2026 — Present",
     location: "Remote",
     description:
-      "Worked on the ChatGPT web application and the API platform. Designed and implemented streaming response infrastructure, conversation memory, and tool-use orchestration. Shipped the plugins system used by millions of users.",
+      "Building responsive websites and full-stack web applications using Next.js, React, and modern web technologies. Developing backend APIs and integrating databases to deliver functional, maintainable web solutions for freelance projects.",
     responsibilities: [
-      "Worked on web application development and API platforms.",
-      "Designed and implemented streaming response infrastructure, conversation memory, and tool-use orchestration.",
-      "Shipped scalable systems and user-facing workflows used by large user bases.",
+      "Building responsive websites and full-stack web applications using Next.js, React, and modern web technologies.",
+      "Developing backend APIs and integrating databases to deliver functional, maintainable web solutions for freelance projects.",
     ],
-    technologies: ["Nextjs", "React", "Express.js", "Prisma", "PostgreSQL", "TailwindCSS"],
+    technologies: [
+      "Next.js",
+      "React",
+      "Express.js",
+      "Prisma",
+      "PostgreSQL",
+      "Tailwind CSS",
+    ],
   },
   // {
   //   company: "Stripe",

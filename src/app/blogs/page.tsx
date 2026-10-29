@@ -19,7 +19,7 @@ export const metadata: Metadata = {
 
 export default function BlogsPage() {
   return (
-    <main className="pt-24 sm:pt-28 pb-16 md:pb-20 min-h-screen section-gradient-cool">
+    <main id="main" className="pt-24 sm:pt-28 pb-16 md:pb-20 min-h-screen section-gradient-cool">
       <div className="section-container">
         <Reveal>
           <div className="mb-10 md:mb-16">

@@ -1,9 +1,15 @@
+"use client";
+
 import Link from "next/link";
 import { ArrowUp } from "lucide-react";
 import { socialLinks } from "@/data/social";
 import { siteConfig } from "@/data/site";
 
 export function Footer() {
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
   return (
     <footer className="border-t border-gray-200/80 dark:border-white/10 py-12 bg-gradient-to-b from-transparent to-gray-50/50 dark:from-transparent dark:to-transparent">
       <div className="section-container">
@@ -39,15 +45,17 @@ export function Footer() {
             })}
           </div>
 
-          <a
-            href="#main"
-            className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
+          <button
+            type="button"
+            onClick={scrollToTop}
+            aria-label="Back to top"
+            className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors cursor-pointer group focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 rounded-lg"
           >
-            Back to top
-            <span className="p-1.5 rounded-lg border border-gray-200 dark:border-white/10">
-              <ArrowUp className="w-4 h-4" />
+            <span>Back to top</span>
+            <span className="p-1.5 rounded-lg border border-gray-200 dark:border-white/10 group-hover:border-gray-400 dark:group-hover:border-white/30 transition-colors">
+              <ArrowUp className="w-4 h-4 transition-transform duration-200 group-hover:-translate-y-0.5" />
             </span>
-          </a>
+          </button>
         </div>
 
         <div className="mt-8 pt-8 border-t border-gray-100 dark:border-white/5 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs sm:text-sm text-gray-400 dark:text-gray-500">
