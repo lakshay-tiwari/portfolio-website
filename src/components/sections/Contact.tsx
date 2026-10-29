@@ -39,7 +39,7 @@ export function Contact() {
   };
 
   // Filter out email from the social channels grid since email is already the main heroic element
-  const socialChannels = socialLinks.filter((s) => s.name.toLowerCase() !== "email");
+  const socialChannels = socialLinks.filter((s) => !["email", "gmail", "mail"].includes(s.name.toLowerCase()));
 
   return (
     <section id="contact" className="section-padding relative overflow-hidden section-gradient-warm">
@@ -184,7 +184,7 @@ export function Contact() {
                       href={social.href}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="group flex items-center justify-between p-3 rounded-xl border border-gray-200/70 dark:border-white/10 bg-white/40 dark:bg-white/[0.02] hover:bg-primary-50/50 dark:hover:bg-primary-500/10 hover:border-primary-400 dark:hover:border-primary-500/40 text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 transition-all duration-200 hover:-translate-y-0.5 active:scale-95"
+                      className={`group flex items-center justify-between p-3 rounded-xl border border-gray-200/70 dark:border-white/10 bg-white/40 dark:bg-white/[0.02] ${social.hoverBorder || "hover:border-primary-400"} ${social.hoverBg || "hover:bg-primary-50/50 dark:hover:bg-primary-500/10"} text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-all duration-200 hover:-translate-y-0.5 active:scale-95 shadow-sm hover:shadow-md`}
                     >
                       <div className="flex items-center gap-2.5 min-w-0">
                         <Icon className="w-4 h-4 shrink-0 transition-transform duration-200 group-hover:scale-110" />

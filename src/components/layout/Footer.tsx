@@ -27,9 +27,9 @@ export function Footer() {
                   rel="noopener noreferrer"
                   aria-label={social.name}
                   title={social.name}
-                  className="group relative p-2.5 rounded-lg text-gray-500 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-gray-100 dark:hover:bg-white/5 transition-colors"
+                  className={`group relative p-2.5 rounded-xl border border-transparent hover:border-gray-200/80 dark:hover:border-white/10 ${social.hoverBg || "hover:bg-gray-100 dark:hover:bg-white/5"} transition-all duration-200 hover:-translate-y-0.5`}
                 >
-                  <Icon className="w-5 h-5" />
+                  <Icon className="w-5 h-5 transition-transform duration-200 group-hover:scale-110" />
                   <span className="pointer-events-none absolute -top-9 left-1/2 -translate-x-1/2 px-2.5 py-1 rounded-md text-xs font-medium text-white bg-gray-900/90 dark:bg-gray-800/95 border border-white/10 shadow-lg backdrop-blur-sm whitespace-nowrap opacity-0 translate-y-1.5 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-200 z-30">
                     {social.name}
                     <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 rotate-45 bg-gray-900/90 dark:bg-gray-800/95 border-r border-b border-white/10" />

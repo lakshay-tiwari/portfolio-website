@@ -237,9 +237,9 @@ export function Hero() {
                       rel="noopener noreferrer"
                       aria-label={social.name}
                       title={social.name}
-                      className="group relative p-2.5 sm:p-3 rounded-xl border border-gray-200 dark:border-white/10 text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 hover:border-primary-300 dark:hover:border-primary-500/40 hover:bg-primary-50 dark:hover:bg-primary-500/5 transition-all duration-300 hover:-translate-y-0.5"
+                      className={`group relative p-2.5 sm:p-3 rounded-xl border border-gray-200/80 dark:border-white/10 bg-white/40 dark:bg-white/[0.02] ${social.hoverBorder || "hover:border-primary-300 dark:hover:border-primary-500/40"} ${social.hoverBg || "hover:bg-primary-50 dark:hover:bg-primary-500/5"} transition-all duration-300 hover:-translate-y-0.5 shadow-sm hover:shadow-md`}
                     >
-                      <Icon className="w-4 h-4 sm:w-5 sm:h-5" />
+                      <Icon className="w-4 h-4 sm:w-5 sm:h-5 transition-transform duration-200 group-hover:scale-110" />
                       <span className="pointer-events-none absolute -top-9 left-1/2 -translate-x-1/2 px-2.5 py-1 rounded-md text-xs font-medium text-white bg-gray-900/90 dark:bg-gray-800/95 border border-white/10 shadow-lg backdrop-blur-sm whitespace-nowrap opacity-0 translate-y-1.5 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-200 z-30">
                         {social.name}
                         <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 rotate-45 bg-gray-900/90 dark:bg-gray-800/95 border-r border-b border-white/10" />
