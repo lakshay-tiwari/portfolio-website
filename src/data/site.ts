@@ -27,6 +27,6 @@ export const siteConfig: SiteConfig = {
   resumeUrl: "https://drive.google.com/file/d/1_9ZhsLAXUAyae1lMmY_w2gL6v2CUiEK0/view?usp=sharing",
   profileImage: "/images/profile_image.webp",
   bannerImage: "/images/banner-image.jpeg",
-  url: process.env.NEXT_PUBLIC_SITE_URL || "https://lakshyatiwari.com",
+  url: process.env.NEXT_PUBLIC_SITE_URL || "https://lakshya-tiwari.dev",
 };
 
