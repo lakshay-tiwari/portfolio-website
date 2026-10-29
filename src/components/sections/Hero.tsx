@@ -69,18 +69,7 @@ export function Hero() {
     title: "",
   });
 
-  const bannerTriggerRef = useRef<HTMLDivElement>(null);
   const avatarTriggerRef = useRef<HTMLDivElement>(null);
-
-  const openBannerViewer = () => {
-    setViewerState({
-      isOpen: true,
-      src: siteConfig.bannerImage,
-      alt: "Profile banner cover",
-      title: "Cover Banner",
-      triggerRef: bannerTriggerRef,
-    });
-  };
 
   const openAvatarViewer = () => {
     setViewerState({
@@ -111,35 +100,16 @@ export function Hero() {
           {/* Main Profile Container with subtle dashed border */}
           <div className="relative rounded-3xl border border-dashed border-gray-300/90 dark:border-white/15 p-3 sm:p-5 md:p-6 bg-white/40 dark:bg-white/[0.02] backdrop-blur-sm shadow-sm">
             
-            {/* Clickable Banner Image Container */}
-            <div
-              ref={bannerTriggerRef}
-              role="button"
-              tabIndex={0}
-              onClick={openBannerViewer}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === " ") {
-                  e.preventDefault();
-                  openBannerViewer();
-                }
-              }}
-              aria-label="View banner image in full screen"
-              className="group relative w-full aspect-[16/9] sm:aspect-[2.2/1] rounded-2xl overflow-hidden border border-gray-200/60 dark:border-white/10 shadow-inner bg-gray-900 cursor-zoom-in focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-[#0a0a0f]"
-            >
+            {/* Banner Image Container */}
+            <div className="relative w-full aspect-[16/9] sm:aspect-[2.2/1] rounded-2xl overflow-hidden border border-gray-200/60 dark:border-white/10 shadow-inner bg-gray-900 select-none">
               <img
                 src={siteConfig.bannerImage}
                 alt={`${siteConfig.name} profile cover banner`}
-                className="w-full h-full object-cover object-[center_82%] select-none transition-transform duration-500 group-hover:scale-[1.02]"
+                className="w-full h-full object-cover object-[center_82%] select-none pointer-events-none"
                 loading="eager"
               />
               {/* Subtle gradient overlay to enhance depth */}
               <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent pointer-events-none" />
-              
-              {/* Hover zoom-in indicator badge */}
-              <div className="absolute top-3 right-3 px-2.5 py-1.5 rounded-xl bg-black/50 hover:bg-black/70 backdrop-blur-md border border-white/20 text-white flex items-center gap-1.5 text-xs font-medium opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100 transition-opacity duration-200 pointer-events-none shadow-lg">
-                <ZoomIn className="w-3.5 h-3.5" />
-                <span>View Banner</span>
-              </div>
             </div>
 
             {/* Avatar & Action Buttons Row (Overlapping the banner) */}

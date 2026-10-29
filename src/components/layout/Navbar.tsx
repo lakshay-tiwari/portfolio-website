@@ -3,18 +3,10 @@
 import { useEffect, useRef, useState, type MouseEvent } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Menu, X, Home, Briefcase, Code2, Sparkles, Mail, Bot } from "lucide-react";
+import { Menu, X, Bot } from "lucide-react";
 import { navigationItems } from "@/data/navigation";
 import { ThemeSwitcher } from "./ThemeSwitcher";
 import { siteConfig } from "@/data/site";
-
-const navIcons: Record<string, React.ElementType> = {
-  Main: Home,
-  Experience: Briefcase,
-  Projects: Code2,
-  Skills: Sparkles,
-  Contact: Mail,
-};
 
 export function Navbar() {
   const [scrolled, setScrolled] = useState(false);
@@ -203,31 +195,14 @@ export function Navbar() {
             />
 
             {navigationItems.map((item) => {
-              const Icon = navIcons[item.label];
               const active = isActive(item.href);
               const isHovered = hoveredHref === item.href;
               const isCurrentTarget = isHovered || (!hoveredHref && active);
               const isHash = isHashLink(item.href);
 
-              const content = (
-                <>
-                  {Icon && (
-                    <Icon
-                      className={`w-4 h-4 shrink-0 transition-colors duration-200 ${
-                        active
-                          ? "text-primary-600 dark:text-primary-400"
-                          : "text-gray-400 dark:text-gray-500"
-                      }`}
-                    />
-                  )}
-                  <span>{item.label}</span>
-                  {active && (
-                    <span className="w-1.5 h-1.5 rounded-full bg-primary-500 shadow-[0_0_8px_rgba(16,185,129,0.9)] animate-pulse shrink-0" />
-                  )}
-                </>
-              );
+              const content = <span>{item.label}</span>;
 
-              const itemClass = `relative z-10 flex items-center gap-2 px-4 py-2.5 translate-y-px text-sm font-medium rounded-full transition-colors duration-200 cursor-pointer select-none ${
+              const itemClass = `relative z-10 flex items-center px-4 py-2 text-sm font-medium rounded-full transition-colors duration-200 cursor-pointer select-none ${
                 isCurrentTarget
                   ? "text-gray-900 dark:text-white"
                   : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
@@ -316,27 +291,12 @@ export function Navbar() {
             <div className="h-px w-24 mx-auto bg-gradient-to-r from-transparent via-white/80 dark:via-white/30 to-transparent mb-1" />
 
             {navigationItems.map((item, i) => {
-              const Icon = navIcons[item.label];
               const active = isActive(item.href);
               const isHash = isHashLink(item.href);
 
               const content = (
                 <>
-                  <div className="flex items-center gap-3">
-                    {Icon && (
-                      <div
-                        className={`p-2 rounded-xl ${
-                          active
-                            ? "bg-primary-500/15 text-primary-600 dark:text-primary-400"
-                            : "bg-gray-100 dark:bg-white/5 text-gray-500 dark:text-gray-400"
-                        }`}
-                      >
-                        <Icon className="w-4 h-4" />
-                      </div>
-                    )}
-                    <span>{item.label}</span>
-                  </div>
-
+                  <span>{item.label}</span>
                   {active && (
                     <span className="w-2 h-2 rounded-full bg-primary-500 shadow-[0_0_8px_rgba(16,185,129,0.9)]" />
                   )}

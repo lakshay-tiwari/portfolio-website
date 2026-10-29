@@ -4,3 +4,5 @@ export { XIcon } from "./XIcon";
 export { MediumIcon } from "./MediumIcon";
 export { MailIcon, GmailIcon } from "./MailIcon";
 export { LeetCodeIcon } from "./LeetCodeIcon";
+export { NotionIcon } from "./NotionIcon";
+export { LiveLinkIcon } from "./LiveLinkIcon";
