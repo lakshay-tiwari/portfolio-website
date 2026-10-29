@@ -90,6 +90,24 @@ export function AgentReader({ markdown, data }: AgentReaderProps) {
 
           <div className="flex flex-wrap items-center gap-2 shrink-0 w-full sm:w-auto">
             <Link
+              href="/for-agents.md"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-mono font-medium border border-primary-500/30 bg-primary-500/10 hover:bg-primary-500/15 text-primary-700 dark:text-primary-300 transition-colors"
+              title="Direct Markdown endpoint without HTML"
+            >
+              <span>/for-agents.md</span>
+              <ExternalLink className="w-3 h-3 opacity-60" />
+            </Link>
+            <Link
+              href="/resume.pdf"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-mono font-medium border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 hover:border-primary-500/40 text-gray-700 dark:text-gray-300 transition-colors"
+              title="Direct Resume PDF"
+            >
+              <span>/resume.pdf</span>
+              <ExternalLink className="w-3 h-3 opacity-60" />
+            </Link>
+            <Link
               href="/llms.txt"
               className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-mono font-medium border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 hover:border-primary-500/40 text-gray-700 dark:text-gray-300 transition-colors"
             >
@@ -459,20 +477,31 @@ export function AgentReader({ markdown, data }: AgentReaderProps) {
                     </a>
                   </div>
                 )}
-                {contact.resume && (
                   <div>
                     <span className="font-mono text-xs text-gray-500 uppercase block mb-1">Resume</span>
-                    <a
-                      href={contact.resume}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="font-medium text-primary-600 dark:text-primary-400 hover:underline inline-flex items-center gap-1"
-                    >
-                      View Google Drive Resume
-                      <ArrowUpRight className="w-3.5 h-3.5" />
-                    </a>
+                    <div className="flex flex-col gap-1">
+                      <a
+                        href="/resume.pdf"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="font-medium text-primary-600 dark:text-primary-400 hover:underline inline-flex items-center gap-1"
+                      >
+                        Direct Resume PDF (/resume.pdf)
+                        <ArrowUpRight className="w-3.5 h-3.5" />
+                      </a>
+                      {contact.resume && (
+                        <a
+                          href={contact.resume}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-xs text-gray-500 dark:text-gray-400 hover:underline inline-flex items-center gap-1"
+                        >
+                          Google Drive Backup Link
+                          <ArrowUpRight className="w-3 h-3" />
+                        </a>
+                      )}
+                    </div>
                   </div>
-                )}
               </div>
             </div>
           </section>

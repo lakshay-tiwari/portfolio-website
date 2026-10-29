@@ -47,6 +47,7 @@ export type PortfolioJson = {
     twitter?: string;
     leetcode?: string;
     resume: string;
+    resumePdfUrl?: string;
     portfolioUrl: string;
   };
   meta: {
@@ -54,7 +55,9 @@ export type PortfolioJson = {
     schema: string;
     llmsTxtUrl: string;
     agentsPageUrl: string;
+    agentsMarkdownUrl: string;
     apiUrl: string;
+    resumePdfUrl: string;
   };
 };
 
@@ -127,6 +130,7 @@ export function getPortfolioData(): PortfolioJson {
       twitter: getLinkHref("X"),
       leetcode: getLinkHref("Leetcode"),
       resume: siteConfig.resumeUrl,
+      resumePdfUrl: `${baseUrl}/resume.pdf`,
       portfolioUrl: baseUrl,
     },
     meta: {
@@ -134,12 +138,15 @@ export function getPortfolioData(): PortfolioJson {
       schema: "https://schema.org/Person",
       llmsTxtUrl: `${baseUrl}/llms.txt`,
       agentsPageUrl: `${baseUrl}/for-agents`,
+      agentsMarkdownUrl: `${baseUrl}/for-agents.md`,
       apiUrl: `${baseUrl}/api/portfolio`,
+      resumePdfUrl: `${baseUrl}/resume.pdf`,
     },
   };
 }
 
 export function getPortfolioMarkdown(): string {
+  const baseUrl = getBaseUrl();
   const data = getPortfolioData();
   const { profile, skills, projects: projs, experience: exps, contact } = data;
 
@@ -210,14 +217,18 @@ export function getPortfolioMarkdown(): string {
   md += `## Education\n\n`;
   md += `- Formal university credential records are omitted as they are not currently documented in the portfolio repository. Background is demonstrated through practical software engineering, open-source architectures, and continuous technical research.\n\n`;
 
-  md += `## Contact\n\n`;
+  md += `## Contact & Direct Links\n\n`;
   md += `- **Email:** ${contact.email}\n`;
+  md += `- **Direct Resume (PDF):** ${baseUrl}/resume.pdf\n`;
+  if (contact.resume) md += `- **Google Drive Resume:** ${contact.resume}\n`;
   if (contact.github) md += `- **GitHub:** ${contact.github}\n`;
   if (contact.linkedin) md += `- **LinkedIn:** ${contact.linkedin}\n`;
   if (contact.twitter) md += `- **X (Twitter):** ${contact.twitter}\n`;
   if (contact.leetcode) md += `- **LeetCode:** ${contact.leetcode}\n`;
-  if (contact.resume) md += `- **Resume:** ${contact.resume}\n`;
-  md += `- **Portfolio:** ${contact.portfolioUrl}\n\n`;
+  md += `- **Portfolio Website:** ${contact.portfolioUrl}\n`;
+  md += `- **Direct Markdown Profile:** ${baseUrl}/for-agents.md\n`;
+  md += `- **Structured JSON API:** ${baseUrl}/api/portfolio\n`;
+  md += `- **llms.txt Overview:** ${baseUrl}/llms.txt\n\n`;
 
   md += `---\n\n`;
   md += `*Machine-readable portfolio generated dynamically for AI agents, research crawlers, and automated indexing tools from the portfolio single source of truth.*`;
@@ -226,6 +237,7 @@ export function getPortfolioMarkdown(): string {
 }
 
 export function getLlmsTxt(): string {
+  const baseUrl = getBaseUrl();
   const data = getPortfolioData();
   const { profile, contact, projects: projs, experience: exps, skills } = data;
 
@@ -234,14 +246,16 @@ export function getLlmsTxt(): string {
 
   text += `## Profile\n`;
   text += `- Website: ${contact.portfolioUrl}\n`;
-  text += `- AI Agents Page (Full Markdown): ${data.meta.agentsPageUrl}\n`;
+  text += `- Direct Markdown Profile: ${baseUrl}/for-agents.md\n`;
+  text += `- AI Agents Page (Full HTML): ${data.meta.agentsPageUrl}\n`;
   text += `- Portfolio API (Structured JSON): ${data.meta.apiUrl}\n`;
+  text += `- Direct Resume (PDF): ${baseUrl}/resume.pdf\n`;
+  if (contact.resume) text += `- Resume (Google Drive): ${contact.resume}\n`;
   text += `- Location: ${profile.location}\n`;
   text += `- Email: ${contact.email}\n`;
   if (contact.github) text += `- GitHub: ${contact.github}\n`;
   if (contact.linkedin) text += `- LinkedIn: ${contact.linkedin}\n`;
   if (contact.twitter) text += `- X (Twitter): ${contact.twitter}\n`;
-  if (contact.resume) text += `- Resume: ${contact.resume}\n`;
   text += `\n`;
 
   text += `## Professional Summary\n`;
@@ -266,7 +280,9 @@ export function getLlmsTxt(): string {
   text += `\n`;
 
   text += `## Additional Resources\n`;
-  text += `- [Full Machine-Readable Portfolio (Markdown)](${data.meta.agentsPageUrl})\n`;
+  text += `- [Direct Markdown Profile](${baseUrl}/for-agents.md)\n`;
+  text += `- [Direct Resume (PDF)](${baseUrl}/resume.pdf)\n`;
+  text += `- [Interactive AI Agents Page](${data.meta.agentsPageUrl})\n`;
   text += `- [Structured JSON API](${data.meta.apiUrl})\n`;
 
   return text;

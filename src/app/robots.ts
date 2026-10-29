@@ -8,7 +8,14 @@ export default function robots(): MetadataRoute.Robots {
     rules: [
       {
         userAgent: "*",
-        allow: ["/", "/llms.txt", "/for-agents", "/api/portfolio"],
+        allow: [
+          "/",
+          "/llms.txt",
+          "/for-agents",
+          "/for-agents.md",
+          "/api/portfolio",
+          "/resume.pdf",
+        ],
       },
     ],
     sitemap: `${baseUrl}/sitemap.xml`,

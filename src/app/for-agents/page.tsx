@@ -9,6 +9,11 @@ export const metadata: Metadata = {
     "Complete professional portfolio data formatted for autonomous AI agents, LLMs, automated research tools, and search crawlers in structured Markdown and JSON.",
   alternates: {
     canonical: "/for-agents",
+    types: {
+      "text/markdown": "/for-agents.md",
+      "application/json": "/api/portfolio",
+      "text/plain": "/llms.txt",
+    },
   },
   openGraph: {
     title: `AI Agent Profile — ${siteConfig.name}`,
