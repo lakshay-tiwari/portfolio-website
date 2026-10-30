@@ -41,7 +41,7 @@ export const socialLinks: SocialLink[] = [
   },
   {
     name: "Medium",
-    href: "https://medium.com",
+    href: "https://medium.com/@imlakshya.tiwari",
     icon: MediumIcon,
     hoverBorder: "hover:border-[#00AB6C]/60",
     hoverBg: "hover:bg-[#00AB6C]/10",
