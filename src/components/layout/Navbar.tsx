@@ -75,7 +75,7 @@ export function Navbar() {
           return;
         }
 
-        const sectionIds = ["contact", "skills", "projects", "experience", "main"];
+        const sectionIds = ["contact", "skills", "projects", "experience", "activity", "main"];
         const scrollPosition = window.scrollY + 220;
 
         for (const id of sectionIds) {
