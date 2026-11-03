@@ -9,6 +9,6 @@ export const navigationItems: NavigationItem[] = [
   { label: "Experience", href: "#experience" },
   { label: "Projects", href: "#projects" },
   { label: "Skills", href: "#skills" },
-  // { label: "Blogs", href: "/blogs" },
+  { label: "Blogs", href: "/blogs" },
   { label: "Contact", href: "#contact" },
 ];

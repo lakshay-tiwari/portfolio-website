@@ -7,15 +7,14 @@ export type Blog = {
 };
 
 export const blogs: Blog[] = [
-  // {
-  //   title: "Building RAG Systems That Actually Work in Production",
-  //   date: "2024-08-15",
-  //   description:
-  //     "A deep dive into the engineering challenges of deploying retrieval-augmented generation at scale — from chunking strategies to evaluation pipelines.",
-  //   image:
-  //     "https://images.pexels.com/photos/17483873/pexels-photo-17483873.png?auto=compress&cs=tinysrgb&h=650&w=940",
-  //   url: "https://medium.com",
-  // },
+  {
+    title: "Understanding Memory in AI",
+    date: "2026-11-04",
+    description:
+      "LLMs forget everything between messages. Here are 3 ways to give them memory: plain Python, LangChain, and Mem0.",
+    image: "/images/blogs/ai_memory_blog_cover.webp",
+    url: "https://medium.com/@imlakshya.tiwari/understanding-memory-in-ai-e630b40ca3a8",
+  },
   // {
   //   title: "Why I Stopped Using Redux and Started Using Zustand",
   //   date: "2024-06-02",

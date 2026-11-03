@@ -63,6 +63,8 @@ export function Navbar() {
         const isScrolled = window.scrollY > 20;
         setScrolled((prev) => (prev !== isScrolled ? isScrolled : prev));
 
+        if (pathname !== "/") return;
+
         // Top of page -> #main
         if (window.scrollY < 120) {
           setActiveSection((prev) => (prev !== "#main" ? "#main" : prev));
@@ -94,7 +96,7 @@ export function Navbar() {
       window.removeEventListener("scroll", handleScroll);
       if (rafId !== null) cancelAnimationFrame(rafId);
     };
-  }, []);
+  }, [pathname]);
 
   // Update sliding indicator whenever active section or hovered item changes
   useEffect(() => {
@@ -119,6 +121,11 @@ export function Navbar() {
 
   useEffect(() => {
     setMobileOpen(false);
+    if (pathname === "/blogs") {
+      setActiveSection("/blogs");
+    } else if (pathname === "/") {
+      setActiveSection("#main");
+    }
   }, [pathname]);
 
   useEffect(() => {
@@ -138,10 +145,7 @@ export function Navbar() {
     updateIndicatorTo(href);
 
     if (pathname !== "/") {
-      router.push("/");
-      setTimeout(() => {
-        document.querySelector(href)?.scrollIntoView({ behavior: "smooth" });
-      }, 100);
+      router.push(`/${href}`);
     } else {
       document.querySelector(href)?.scrollIntoView({ behavior: "smooth" });
     }

@@ -64,6 +64,13 @@ export function Footer() {
           </p>
           <div className="flex items-center gap-3 text-xs font-mono">
             <Link
+              href="/blogs"
+              className="hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
+            >
+              Blogs
+            </Link>
+            <span className="opacity-40">•</span>
+            <Link
               href="/for-agents"
               className="hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
             >
