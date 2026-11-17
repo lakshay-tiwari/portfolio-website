@@ -217,10 +217,10 @@ export function useDogMotion(
         motion.vy += ay * dt;
 
         // Velocity Clamping to enforce max speed ceiling (slow, steady pace)
-        const currentSpeed = Math.hypot(motion.vx, motion.vy);
+        const stepSpeed = Math.hypot(motion.vx, motion.vy);
         const effectiveMaxSpeed = tracking.isReducedMotion ? maxSpeed * 0.7 : maxSpeed;
-        if (currentSpeed > effectiveMaxSpeed) {
-          const ratio = effectiveMaxSpeed / currentSpeed;
+        if (stepSpeed > effectiveMaxSpeed) {
+          const ratio = effectiveMaxSpeed / stepSpeed;
           motion.vx *= ratio;
           motion.vy *= ratio;
         }
@@ -229,52 +229,49 @@ export function useDogMotion(
         motion.currentX += motion.vx * dt;
         motion.currentY += motion.vy * dt;
 
-        // 4. 4-Directional Heading & Facing Determination
-        const absX = Math.abs(motion.vx);
-        const absY = Math.abs(motion.vy);
-
-        if (currentSpeed > walkExitThreshold) {
-          // Vertical vs Horizontal heading with hysteresis:
-          if (absY > absX * 0.95) {
-            // Dominant vertical motion: face up or down directly
-            motion.heading = motion.vy < 0 ? "up" : "down";
-          } else if (absX > absY * 0.95) {
-            // Dominant horizontal motion: side profile facing left or right
-            if (motion.vx > flipVelocityThreshold) {
-              motion.heading = "right";
+        // 4. Omnidirectional Heading & Facing Determination
+        if (stepSpeed > walkExitThreshold) {
+          if (motion.vx > flipVelocityThreshold) {
+            motion.facing = 1;
+            motion.heading = "right";
+          } else if (motion.vx < -flipVelocityThreshold) {
+            motion.facing = -1;
+            motion.heading = "left";
+          } else {
+            // For nearly pure vertical motion, orient facing towards cursor X
+            const relX = tracking.mouseX - motion.currentX;
+            if (relX > 10) {
               motion.facing = 1;
-            } else if (motion.vx < -flipVelocityThreshold) {
-              motion.heading = "left";
+            } else if (relX < -10) {
               motion.facing = -1;
             }
+            motion.heading = motion.vy < 0 ? "up" : "down";
           }
         }
 
-        // When moving left, facing scale flips to -1; otherwise stays +1
-        let targetFacingScale = 1;
-        if (motion.heading === "left") {
-          targetFacingScale = -1;
-        } else {
-          targetFacingScale = 1;
-        }
-
+        // Smooth horizontal facing scale interpolation (+1 = right, -1 = left)
+        const targetFacingScale = motion.facing;
         motion.facingScale +=
           (targetFacingScale - motion.facingScale) * Math.min(1, dt * flipLerpSpeed);
 
-        // 5. Subtle Banking Tilt (Slight sway for up/down, banking for left/right)
+        // 5. Continuous Omnidirectional Orientation & Dynamic Pitch/Angle
         if (tracking.isReducedMotion) {
           motion.tilt = 0;
-        } else {
-          let targetTilt = 0;
-          if (motion.heading === "left" || motion.heading === "right") {
-            targetTilt = Math.max(-maxTiltDeg, Math.min(maxTiltDeg, motion.vx * tiltFactor));
-          } else {
-            // Subtle steering sway for up/down (clamped to +/- 3 deg)
-            targetTilt = Math.max(-3, Math.min(3, motion.vx * 0.03));
-          }
+        } else if (stepSpeed > walkExitThreshold) {
+          // Continuous omnidirectional rotation angle:
+          // In screen coordinates (+Y down, +X right):
+          // With scaleX(+1) (facing right), atan2(vy, vx) gives the heading angle.
+          // With scaleX(-1) (facing left), atan2(vy, |vx|) gives the symmetrical pitch angle!
+          const rawAngle = (Math.atan2(motion.vy, Math.abs(motion.vx)) * 180) / Math.PI;
+          // Soft ramp-up factor so very slow creeping starts level before tilting
+          const speedFactor = Math.min(1, stepSpeed / 25);
+          const targetTilt = Math.max(-maxTiltDeg, Math.min(maxTiltDeg, rawAngle * speedFactor));
 
           motion.tilt +=
             (targetTilt - motion.tilt) * Math.min(1, dt * tiltSettleSpeed);
+        } else {
+          // When stationary or settling, smoothly level back to 0deg upright seated pose
+          motion.tilt += (0 - motion.tilt) * Math.min(1, dt * tiltSettleSpeed);
         }
       }
 

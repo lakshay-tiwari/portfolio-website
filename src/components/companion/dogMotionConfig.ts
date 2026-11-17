@@ -190,12 +190,12 @@ export const DEFAULT_DOG_CONFIG: DogMotionConfig = {
     flipVelocityThreshold: 12,
     // Smooth turn flip interpolation rate
     flipLerpSpeed: 8,
-    // Subtle banking tilt
-    maxTiltDeg: 7,
+    // Omnidirectional dynamic rotation range (allows full diagonal and steep angles up to +/-80 deg)
+    maxTiltDeg: 80,
     tiltFactor: 0.022,
     // Maximum vertical pitch angle during climb/descent
-    maxVerticalPitchDeg: 14,
-    tiltSettleSpeed: 9,
+    maxVerticalPitchDeg: 80,
+    tiltSettleSpeed: 10,
   },
 
   animation: {

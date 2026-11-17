@@ -234,46 +234,22 @@ export function DogCharacter({
           opacity: 1 !important;
         }
 
-        /* ─── 3. FACING DOWN: Moving downwards towards cursor ────────── */
-        [data-heading="down"][data-state="walking"]:not([data-turning="true"]) .frame-down1,
-        [data-heading="down"][data-state="running"]:not([data-turning="true"]) .frame-down1 {
-          opacity: 1;
-          animation: cat-walk-cycle-a 0.28s steps(1) infinite;
-        }
-        [data-heading="down"][data-state="walking"]:not([data-turning="true"]) .frame-down2,
-        [data-heading="down"][data-state="running"]:not([data-turning="true"]) .frame-down2 {
-          opacity: 0;
-          animation: cat-walk-cycle-b 0.28s steps(1) infinite;
-        }
-
-        /* ─── 4. FACING UP: Moving upwards towards cursor ───────────── */
-        [data-heading="up"][data-state="walking"]:not([data-turning="true"]) .frame-up1,
-        [data-heading="up"][data-state="running"]:not([data-turning="true"]) .frame-up1 {
-          opacity: 1;
-          animation: cat-walk-cycle-a 0.28s steps(1) infinite;
-        }
-        [data-heading="up"][data-state="walking"]:not([data-turning="true"]) .frame-up2,
-        [data-heading="up"][data-state="running"]:not([data-turning="true"]) .frame-up2 {
-          opacity: 0;
-          animation: cat-walk-cycle-b 0.28s steps(1) infinite;
-        }
-
-        /* ─── 5. HORIZONTAL WALKING (Left / Right): Side profile ────── */
-        :not([data-heading="up"]):not([data-heading="down"])[data-state="walking"]:not([data-turning="true"]) .frame-walk1 {
+        /* ─── 3. OMNIDIRECTIONAL WALKING: Rotates in any direction ───── */
+        [data-state="walking"]:not([data-turning="true"]) .frame-walk1 {
           opacity: 1;
           animation: cat-walk-cycle-a 0.36s steps(1) infinite;
         }
-        :not([data-heading="up"]):not([data-heading="down"])[data-state="walking"]:not([data-turning="true"]) .frame-walk2 {
+        [data-state="walking"]:not([data-turning="true"]) .frame-walk2 {
           opacity: 0;
           animation: cat-walk-cycle-b 0.36s steps(1) infinite;
         }
 
-        /* ─── 6. HORIZONTAL RUNNING (Left / Right): Side gallop ──────── */
-        :not([data-heading="up"]):not([data-heading="down"])[data-state="running"]:not([data-turning="true"]) .frame-run1 {
+        /* ─── 4. OMNIDIRECTIONAL RUNNING: Gallop in any direction ────── */
+        [data-state="running"]:not([data-turning="true"]) .frame-run1 {
           opacity: 1;
           animation: cat-run-cycle-a 0.20s steps(1) infinite;
         }
-        :not([data-heading="up"]):not([data-heading="down"])[data-state="running"]:not([data-turning="true"]) .frame-run2 {
+        [data-state="running"]:not([data-turning="true"]) .frame-run2 {
           opacity: 0;
           animation: cat-run-cycle-b 0.20s steps(1) infinite;
         }
