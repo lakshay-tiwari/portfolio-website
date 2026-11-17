@@ -29,7 +29,17 @@ export function useDogMotion(
   elementRef: React.RefObject<HTMLDivElement | null>,
   trackingRef: React.MutableRefObject<CursorTrackingState>,
   config: DogMotionConfig,
-  onStateChange?: (state: DogAnimationState, isTurning: boolean) => void
+  onStateChange?: (state: DogAnimationState, isTurning: boolean) => void,
+  onMotionStep?: (motion: {
+    currentX: number;
+    currentY: number;
+    vx: number;
+    vy: number;
+    speed: number;
+    facing: number;
+    state: DogAnimationState;
+    isSettled: boolean;
+  }) => void
 ) {
   const motionRef = useRef<DogMotionState>({
     currentX: config.initialPosition.x,
@@ -227,6 +237,18 @@ export function useDogMotion(
         elementRef.current.style.transform = `translate3d(${x}px, ${y}px, 0) scaleX(${scaleX}) rotate(${rot}deg)`;
       }
 
+      // 8. Personality & Trail Step Callback
+      onMotionStep?.({
+        currentX: motion.currentX,
+        currentY: motion.currentY,
+        vx: motion.vx,
+        vy: motion.vy,
+        speed: motion.speed,
+        facing: motion.facing,
+        state: motion.animationState,
+        isSettled,
+      });
+
       animationFrameId = requestAnimationFrame(tick);
     };
 
@@ -244,7 +266,7 @@ export function useDogMotion(
     return () => {
       cancelAnimationFrame(animationFrameId);
     };
-  }, [elementRef, trackingRef, config, onStateChange]);
+  }, [elementRef, trackingRef, config, onStateChange, onMotionStep]);
 
   return motionRef;
 }

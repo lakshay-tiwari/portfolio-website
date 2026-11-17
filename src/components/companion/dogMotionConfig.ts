@@ -7,6 +7,41 @@
 
 export type DogAnimationState = "idle" | "walking" | "running" | "sitting" | "turning";
 
+export type DogIdleGesture = "none" | "tilt" | "look-around" | "curious" | "happy-pant";
+
+export type DogReactionType = "none" | "click-react" | "chase-excited" | "greeting";
+
+export interface DogPersonalityConfig {
+  /** Master toggle for personality micro-interactions */
+  enabled: boolean;
+  /** Minimum interval between randomized idle behaviors (ms) */
+  idleMinIntervalMs: number;
+  /** Maximum interval between randomized idle behaviors (ms) */
+  idleMaxIntervalMs: number;
+  /** Duration of an active idle gesture before smoothly returning (ms) */
+  idleGestureDurationMs: number;
+  /** Speed threshold above which movement counts as a chase/sprint (px/s) */
+  chaseSpeedThreshold: number;
+  /** Minimum cumulative distance covered during chase to trigger arrival excitement (px) */
+  chaseMinDistance: number;
+  /** Duration of post-chase arrival excitement (ms) */
+  chaseExcitedDurationMs: number;
+  /** Duration of click reaction jump/hop (ms) */
+  clickReactionDurationMs: number;
+  /** Whether tiny paw-print trail is enabled */
+  enablePawTrail: boolean;
+  /** Maximum concurrent paw prints in object pool */
+  maxPawPrints: number;
+  /** Distance in pixels between consecutive paw print deposits */
+  pawDepositDistance: number;
+  /** Whether running dust puff particles are enabled */
+  enableDustParticles: boolean;
+  /** Whether occasional speech bubbles are enabled */
+  enableSpeechBubble: boolean;
+  /** Minimum cooldown time between speech bubbles (ms) */
+  speechBubbleCooldownMs: number;
+}
+
 export interface DogMotionConfig {
   /** Dog character dimensions (in pixels) */
   size: {
@@ -100,6 +135,11 @@ export interface DogMotionConfig {
     /** Absolute facing scale threshold below which dog is considered actively turning */
     turnFacingThreshold: number;
   };
+
+  /**
+   * Personality & Delightful Micro-Interactions (Phase 3)
+   */
+  personality: DogPersonalityConfig;
 }
 
 export const DEFAULT_DOG_CONFIG: DogMotionConfig = {
@@ -158,6 +198,23 @@ export const DEFAULT_DOG_CONFIG: DogMotionConfig = {
     walkExitThreshold: 6,
     sitDelayMs: 2200,
     turnFacingThreshold: 0.65,
+  },
+
+  personality: {
+    enabled: true,
+    idleMinIntervalMs: 4500,
+    idleMaxIntervalMs: 7500,
+    idleGestureDurationMs: 2000,
+    chaseSpeedThreshold: 500,
+    chaseMinDistance: 300,
+    chaseExcitedDurationMs: 1600,
+    clickReactionDurationMs: 650,
+    enablePawTrail: true,
+    maxPawPrints: 8,
+    pawDepositDistance: 32,
+    enableDustParticles: true,
+    enableSpeechBubble: true,
+    speechBubbleCooldownMs: 26000,
   },
 };
 

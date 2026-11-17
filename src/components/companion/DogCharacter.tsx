@@ -1,11 +1,19 @@
 import React from "react";
-import type { DogAnimationState } from "./dogMotionConfig";
+import type { DogAnimationState, DogIdleGesture } from "./dogMotionConfig";
 
 export interface DogCharacterProps {
   /** Current animation state derived from movement physics */
   state?: DogAnimationState;
   /** Whether the dog is currently in the middle of turning */
   isTurning?: boolean;
+  /** Active idle personality gesture */
+  gesture?: DogIdleGesture;
+  /** Whether in excited mode (post-chase or happy wag) */
+  isExcited?: boolean;
+  /** Whether currently playing click jump reaction */
+  isClickReacting?: boolean;
+  /** Whether in a blink frame */
+  isBlinking?: boolean;
   /** Dimension size in pixels (default: 60) */
   size?: number;
   /** Optional custom class name */
@@ -19,8 +27,12 @@ export interface DogCharacterProps {
  * - Trot/gallop leg cycles for walking & running (front & back antiphase)
  * - Anatomically seamless joints: limbs share the body motion frame and feature
  *   rotation-invariant rounded shoulder/hip bulbs that never detach or show gaps.
- * - Tail wagging with state-dependent velocity (gentle in idle, lively in walk, high-speed in run)
- * - Periodic natural eye blinking
+ * - Tail wagging with state-dependent velocity (gentle in idle, lively in walk, high-speed in run, super-speed in excited)
+ * - Natural breathing during idle & sitting poses
+ * - Dynamic ear expressions: aerodynamic flutter, turning tuck, excited perk
+ * - Curious head tilting, looking around, and happy panting idle gestures
+ * - Joyful spring hop on mouse click
+ * - Periodic natural eye blinking with randomized cadence
  * - Squash & stretch body bounce during locomotion
  * - Smooth transition into a relaxed sitting pose when stationary
  * - Compatible with both light and dark backgrounds
@@ -30,6 +42,10 @@ export interface DogCharacterProps {
 export function DogCharacter({
   state = "idle",
   isTurning = false,
+  gesture = "none",
+  isExcited = false,
+  isClickReacting = false,
+  isBlinking = false,
   size = 60,
   className = "",
 }: DogCharacterProps) {
@@ -39,6 +55,10 @@ export function DogCharacter({
       style={{ width: size, height: size }}
       data-state={state}
       data-turning={isTurning ? "true" : "false"}
+      data-gesture={gesture}
+      data-excited={isExcited ? "true" : "false"}
+      data-click-react={isClickReacting ? "true" : "false"}
+      data-blinking={isBlinking ? "true" : "false"}
       role="img"
       aria-label={`Dog companion character (${state})`}
     >
@@ -112,9 +132,24 @@ export function DogCharacter({
           100% { transform: translateY(-2.8px) scale(0.97, 1.03) rotate(1deg); }
         }
 
+        /* 2b. Subtle Breathing on Torso & Belly (Active when Idle or Sitting) */
+        .dog-torso {
+          transform-origin: 28px 35px;
+          transition: transform 0.35s ease;
+        }
+        [data-state="idle"] .dog-torso,
+        [data-state="sitting"] .dog-torso {
+          animation: dog-torso-breathe 2.8s ease-in-out infinite;
+        }
+        @keyframes dog-torso-breathe {
+          0%, 100% { transform: scale(1, 1); }
+          50% { transform: scale(1.025, 1.04) translateY(-0.35px); }
+        }
+
         /* 3. Tail Wagging Dynamics */
         .dog-tail {
           transform-origin: 13px 34px;
+          transition: transform 0.25s ease-out;
         }
         [data-state="idle"] .dog-tail {
           animation: dog-tail-idle 1.6s ease-in-out infinite alternate;
@@ -126,7 +161,12 @@ export function DogCharacter({
           animation: dog-tail-run 0.18s ease-in-out infinite alternate;
         }
         [data-state="sitting"] .dog-tail {
-          animation: dog-tail-sit 1.2s ease-in-out infinite alternate;
+          animation: dog-tail-sit 1.4s ease-in-out infinite alternate;
+        }
+        /* Super-Speed Wagging when Excited or Arriving from Chase */
+        [data-excited="true"] .dog-tail,
+        .dog-character-root[data-excited="true"] .dog-tail {
+          animation: dog-tail-excited 0.12s ease-in-out infinite alternate !important;
         }
 
         @keyframes dog-tail-idle {
@@ -144,6 +184,10 @@ export function DogCharacter({
         @keyframes dog-tail-sit {
           0% { transform: rotate(-4deg); }
           100% { transform: rotate(16deg); }
+        }
+        @keyframes dog-tail-excited {
+          0% { transform: rotate(-30deg) scale(1.06); }
+          100% { transform: rotate(34deg) scale(0.96); }
         }
 
         /* 4. Trot & Gallop Leg Cycles (Antiphase Pairs with Seamless Rotation Joints) */
@@ -216,10 +260,10 @@ export function DogCharacter({
           100% { transform: rotate(-24deg) translateY(-1px); }
         }
 
-        /* 5. Head Bobbing & Ear Bounce */
+        /* 5. Head Bobbing, Tilting & Expression Gestures */
         .dog-head-group {
           transform-origin: 36px 30px;
-          transition: transform 0.3s ease;
+          transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
         [data-state="idle"] .dog-head-group {
           animation: dog-head-idle 2.4s ease-in-out infinite;
@@ -232,6 +276,17 @@ export function DogCharacter({
         }
         [data-state="sitting"] .dog-head-group {
           transform: translateY(-0.8px) rotate(1deg);
+        }
+
+        /* Personality Idle Gestures (Priority 4) */
+        [data-gesture="tilt"] .dog-head-group {
+          transform: rotate(9.5deg) translateY(-1.2px) translateX(0.6px) !important;
+        }
+        [data-gesture="look-around"] .dog-head-group {
+          transform: rotate(-7.5deg) translateY(-0.8px) translateX(-1px) !important;
+        }
+        [data-gesture="curious"] .dog-head-group {
+          transform: translateY(-2.2px) rotate(3deg) scale(1.02) !important;
         }
 
         @keyframes dog-head-idle {
@@ -247,32 +302,89 @@ export function DogCharacter({
           100% { transform: translateY(-1.5px) rotate(1.5deg); }
         }
 
-        /* 6. Natural Eye Blinking */
+        /* 6. Natural & Controlled Eye Blinking */
         .dog-eye {
           transform-origin: center center;
-          animation: dog-blink 3.8s ease-in-out infinite;
+          transition: transform 0.08s ease-out;
+          animation: dog-blink 4.2s ease-in-out infinite;
+        }
+        /* Discrete blink frame applied by randomized scheduler */
+        [data-blinking="true"] .dog-eye {
+          transform: scaleY(0.08) !important;
+          opacity: 0.88 !important;
+          animation: none !important;
         }
         @keyframes dog-blink {
           0%, 94%, 98%, 100% { transform: scaleY(1); opacity: 1; }
-          96% { transform: scaleY(0.08); opacity: 0.9; }
+          96% { transform: scaleY(0.08); opacity: 0.88; }
         }
 
-        /* 7. Ears Dynamic Wiggle */
-        .dog-ear-near {
-          transform-origin: 38px 17px;
+        /* 7. Dynamic Ears: Aerodynamic Flutter, Turning Tuck & Excited Perk */
+        .dog-ear-near, .dog-ear-far {
+          transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
+        .dog-ear-near { transform-origin: 38px 17px; }
+        .dog-ear-far  { transform-origin: 34px 17px; }
+
         [data-state="walking"] .dog-ear-near {
           animation: dog-ear-bounce 0.36s ease-in-out infinite alternate;
         }
         [data-state="running"] .dog-ear-near {
-          animation: dog-ear-bounce 0.2s ease-in-out infinite alternate;
+          animation: dog-ear-bounce 0.18s ease-in-out infinite alternate;
+        }
+        [data-state="running"] .dog-ear-far {
+          animation: dog-ear-bounce 0.18s ease-in-out 0.04s infinite alternate;
         }
         @keyframes dog-ear-bounce {
-          0% { transform: rotate(-2deg); }
-          100% { transform: rotate(4deg); }
+          0% { transform: rotate(-3deg); }
+          100% { transform: rotate(5deg); }
         }
 
-        /* 8. Turning squash effect */
+        /* Ear reaction during turning: flatten back slightly */
+        [data-turning="true"] .dog-ear-near {
+          transform: rotate(-10deg) translateY(0.5px);
+        }
+        [data-turning="true"] .dog-ear-far {
+          transform: rotate(-12deg) translateY(0.5px);
+        }
+
+        /* Ear perk when curious, tilted, or excited */
+        [data-excited="true"] .dog-ear-near,
+        [data-gesture="curious"] .dog-ear-near,
+        [data-gesture="tilt"] .dog-ear-near {
+          transform: rotate(7deg) scale(1.08);
+        }
+        [data-excited="true"] .dog-ear-far,
+        [data-gesture="curious"] .dog-ear-far,
+        [data-gesture="tilt"] .dog-ear-far {
+          transform: rotate(5deg) scale(1.06);
+        }
+
+        /* 8. Happy Panting Tongue */
+        .dog-tongue {
+          transform-origin: 51px 28px;
+          transition: transform 0.25s ease;
+        }
+        [data-gesture="happy-pant"] .dog-tongue {
+          animation: dog-tongue-pant 0.32s ease-in-out infinite alternate;
+        }
+        @keyframes dog-tongue-pant {
+          0% { transform: scale(1, 1); }
+          100% { transform: scale(1.15, 1.45) translateY(0.8px); }
+        }
+
+        /* 9. Click Reaction: Joyful Spring Hop */
+        [data-click-react="true"] .dog-body-group {
+          animation: dog-click-hop 0.65s cubic-bezier(0.22, 1, 0.36, 1) !important;
+        }
+        @keyframes dog-click-hop {
+          0% { transform: translateY(0); }
+          35% { transform: translateY(-7px) scale(1.04, 0.96); }
+          70% { transform: translateY(1.2px) scale(0.97, 1.03); }
+          100% { transform: translateY(0); }
+        }
+
+        /* 10. Turning squash effect */
         [data-turning="true"] .dog-body-group {
           transform: scale(0.94, 1.03);
         }
@@ -470,6 +582,7 @@ export function DogCharacter({
             />
             {/* Happy Little Tongue Tip */}
             <path
+              className="dog-tongue"
               d="M 51 28 Q 52.5 30.5 53.5 28.5 Z"
               fill="#FB7185"
             />

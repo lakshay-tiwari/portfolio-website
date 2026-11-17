@@ -1,10 +1,18 @@
 "use client";
 
 import { useRef, useState, useCallback } from "react";
-import { DEFAULT_DOG_CONFIG, DogAnimationState, DogMotionConfig } from "./dogMotionConfig";
+import {
+  DEFAULT_DOG_CONFIG,
+  DogAnimationState,
+  DogIdleGesture,
+  DogMotionConfig,
+} from "./dogMotionConfig";
 import { useCursorTracking } from "./useCursorTracking";
 import { useDogMotion } from "./useDogMotion";
 import { DogCharacter } from "./DogCharacter";
+import { PawTrail, PawTrailHandle } from "./PawTrail";
+import { SpeechBubble } from "./SpeechBubble";
+import { useDogPersonality } from "./useDogPersonality";
 
 export interface DogCursorCompanionProps {
   /** Optional custom motion & physics configuration */
@@ -12,11 +20,13 @@ export interface DogCursorCompanionProps {
   /**
    * Optional custom character renderer.
    * Allows swapping the dog asset (e.g. Shiba Inu, custom sprites, Lottie, etc.)
-   * while completely preserving the core movement engine.
+   * while completely preserving the core movement engine and personality triggers.
    */
   renderCharacter?: (props: {
     state: DogAnimationState;
     isTurning: boolean;
+    gesture?: DogIdleGesture;
+    isExcited?: boolean;
     size: number;
   }) => React.ReactNode;
 }
@@ -24,22 +34,29 @@ export interface DogCursorCompanionProps {
 /**
  * DogCursorCompanion
  * 
- * Phase 2: Natural Dog Character & Locomotion Animation Engine.
+ * Phase 3: Personality, Expressive Micro-Interactions & Ambient Companion Engine.
  * 
- * Enhances Phase 1 movement with:
- * - Premium vector Corgi character with transparent background
- * - Idle state with natural breathing, tail sway, and periodic eye blinking
- * - Trot walking state with antiphase leg cycles and head bob
- * - Running state with rapid gallop strides, fast tail wag, and squash-and-stretch
- * - Seated state with front paws tall and rear legs tucked after resting
- * - Turning state with continuous banking lean and orientation flip
- * - Complete transform separation: outer physics transforms vs. inner character skeletal keyframes
+ * Features:
+ * - Damped spring physics movement engine (Phase 1)
+ * - Vector Corgi skeletal character with trot/gallop locomotion cycles (Phase 2)
+ * - Ambient subtle breathing during idle & sitting poses
+ * - Randomized eye blinking with natural intervals and occasional double-blinks
+ * - Responsive ear dynamics: aerodynamic flutter while sprinting, tuck on turn, perk on excitement
+ * - Intelligent randomized idle behavior controller (curious head tilt, look around, sniffing, happy panting)
+ * - Post-chase sprint excitement upon reaching cursor
+ * - Global click interaction (joyful hop & rapid tail wag) that never blocks page links/buttons
+ * - Subtle, fading paw-print trail with running dust particles (zero-garbage pre-allocated DOM pool)
+ * - Occasional, non-intrusive floating speech dialogue ("Woof! 🐾", "Hey there! ✨", "Follow me! 🚀")
+ * - Welcoming greeting on first user interaction
+ * - Strict animation priority system: Locomotion > Turning > Excitement/Click > Idle Gestures > Breathing/Blinking
  */
 export function DogCursorCompanion({
   config: userConfig,
   renderCharacter,
 }: DogCursorCompanionProps) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const pawTrailRef = useRef<PawTrailHandle>(null);
+
   const [animState, setAnimState] = useState<DogAnimationState>("idle");
   const [isTurning, setIsTurning] = useState(false);
 
@@ -54,12 +71,28 @@ export function DogCursorCompanion({
     physics: { ...DEFAULT_DOG_CONFIG.physics, ...userConfig?.physics },
     orientation: { ...DEFAULT_DOG_CONFIG.orientation, ...userConfig?.orientation },
     animation: { ...DEFAULT_DOG_CONFIG.animation, ...userConfig?.animation },
+    personality: { ...DEFAULT_DOG_CONFIG.personality, ...userConfig?.personality },
   }).current;
 
   // Track cursor position and compute intelligent boundary targets
   const trackingRef = useCursorTracking(config);
 
-  // Callback triggered only on discrete state transitions (idle, walking, running, sitting, turning)
+  // Paw-print trail deposit callback (invoked from personality step)
+  const handleDepositPaw = useCallback(
+    (x: number, y: number, angleDeg: number, isRunning: boolean) => {
+      pawTrailRef.current?.depositPaw(x, y, angleDeg, isRunning);
+    },
+    []
+  );
+
+  // Personality & micro-interaction controller
+  const { speechState, onMotionStep } = useDogPersonality(
+    containerRef,
+    config,
+    handleDepositPaw
+  );
+
+  // Callback triggered on discrete locomotion state changes
   const handleStateChange = useCallback(
     (nextState: DogAnimationState, turning: boolean) => {
       setAnimState(nextState);
@@ -68,31 +101,64 @@ export function DogCursorCompanion({
     []
   );
 
-  // Run the physics engine on RAF and apply direct transform updates
-  useDogMotion(containerRef, trackingRef, config, handleStateChange);
+  // Run the physics engine on RAF, applying direct transforms and feeding motion steps
+  useDogMotion(
+    containerRef,
+    trackingRef,
+    config,
+    handleStateChange,
+    onMotionStep
+  );
 
   return (
-    <div
-      ref={containerRef}
-      className="fixed top-0 left-0 pointer-events-none select-none z-[9999] will-change-transform hidden sm:block"
-      style={{
-        width: config.size.width,
-        height: config.size.height,
-        transformOrigin: "center center",
-      }}
-      data-state={animState}
-      data-turning={isTurning ? "true" : "false"}
-      aria-hidden="true"
-    >
-      {renderCharacter ? (
-        renderCharacter({ state: animState, isTurning, size: config.size.width })
-      ) : (
-        <DogCharacter
-          state={animState}
-          isTurning={isTurning}
-          size={config.size.width}
+    <>
+      {/* Subtle Paw-Print & Dust Particle Trail Overlay */}
+      {config.personality.enablePawTrail && (
+        <PawTrail
+          ref={pawTrailRef}
+          maxPaws={config.personality.maxPawPrints}
+          maxDust={config.personality.enableDustParticles ? 5 : 0}
         />
       )}
-    </div>
+
+      {/* Main Dog Companion Container (Hardware-Accelerated Translation) */}
+      <div
+        ref={containerRef}
+        className="fixed top-0 left-0 pointer-events-none select-none z-[9999] will-change-transform hidden sm:block"
+        style={{
+          width: config.size.width,
+          height: config.size.height,
+          transformOrigin: "center center",
+        }}
+        data-state={animState}
+        data-turning={isTurning ? "true" : "false"}
+        data-gesture="none"
+        data-excited="false"
+        data-click-react="false"
+        aria-hidden="true"
+      >
+        {/* Floating Thought / Dialogue Bubble */}
+        <SpeechBubble
+          text={speechState.text}
+          visible={speechState.visible}
+          facing={trackingRef.current.isFlippedToLeft ? -1 : 1}
+        />
+
+        {/* Character Visuals */}
+        {renderCharacter ? (
+          renderCharacter({
+            state: animState,
+            isTurning,
+            size: config.size.width,
+          })
+        ) : (
+          <DogCharacter
+            state={animState}
+            isTurning={isTurning}
+            size={config.size.width}
+          />
+        )}
+      </div>
+    </>
   );
 }
