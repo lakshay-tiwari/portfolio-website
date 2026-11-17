@@ -165,18 +165,17 @@ export const PawTrail = forwardRef<PawTrailHandle, PawTrailProps>(function PawTr
           }}
           className="paw-print-slot w-2.5 h-2.5 text-zinc-600/40 dark:text-zinc-200/35"
         >
-          {/* Minimalist 8-Bit Pixel Paw Print */}
+          {/* Minimalist 8-Bit Pixel Cat Paw Print */}
           <svg
-            viewBox="0 0 6 6"
+            viewBox="0 0 5 5"
             fill="currentColor"
             className="w-full h-full"
             style={{ shapeRendering: "crispEdges" }}
           >
             <rect x="0" y="0" width="1" height="1" />
-            <rect x="2" y="0" width="2" height="1" />
-            <rect x="5" y="0" width="1" height="1" />
-            <rect x="1" y="2" width="4" height="2" />
-            <rect x="2" y="4" width="2" height="1" />
+            <rect x="2" y="0" width="1" height="1" />
+            <rect x="4" y="0" width="1" height="1" />
+            <rect x="1" y="2" width="3" height="2" />
           </svg>
         </div>
       ))}

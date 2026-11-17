@@ -146,8 +146,8 @@ export interface DogMotionConfig {
 
 export const DEFAULT_DOG_CONFIG: DogMotionConfig = {
   size: {
-    width: 56,
-    height: 42,
+    width: 45,
+    height: 36,
   },
 
   initialPosition: {
@@ -156,8 +156,8 @@ export const DEFAULT_DOG_CONFIG: DogMotionConfig = {
   },
 
   cursorOffset: {
-    gapX: 34,
-    offsetY: 4,
+    gapX: 28,
+    offsetY: 6,
   },
 
   boundaryPadding: {
