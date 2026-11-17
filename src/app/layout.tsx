@@ -4,6 +4,7 @@ import "@/index.css";
 import { siteConfig } from "@/data/site";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
+import { DogCursorCompanion } from "@/components/companion";
 import { Analytics } from "@vercel/analytics/next";
 
 const inter = Inter({
@@ -116,6 +117,7 @@ export default function RootLayout({
         <Navbar />
         {children}
         <Footer />
+        <DogCursorCompanion />
         <Analytics />
       </body>
     </html>
