@@ -168,34 +168,34 @@ export const DEFAULT_DOG_CONFIG: DogMotionConfig = {
   boundaryHysteresis: 32,
 
   physics: {
-    // k = 140 gives energetic, responsive following
-    stiffness: 140,
-    // c = 21 is slightly under critical damping (2 * sqrt(140) ≈ 23.66),
-    // giving a subtle, natural, organic overshoot when coming to a halt
-    damping: 21,
-    // Maximum movement speed in pixels per second
-    maxSpeed: 1600,
+    // k = 65: responsive but not frantic — roughly half the previous 140
+    stiffness: 65,
+    // c = 18: slightly under critical damping for a subtle organic settle
+    damping: 18,
+    // Maximum movement speed — capped much lower so the dog never rockets across screen
+    maxSpeed: 700,
     mass: 1.0,
     // Sleep when position diff < 0.25px and speed < 0.5px/s
     settleThreshold: 0.25,
   },
 
   orientation: {
-    // Only flip if velocity exceeds 25px/s to prevent nervous twitching
-    flipVelocityThreshold: 25,
+    // Only flip if velocity exceeds 18px/s to prevent nervous twitching
+    flipVelocityThreshold: 18,
     // Smooth turn flip interpolation rate
-    flipLerpSpeed: 14,
-    // Up to 12 degrees banking tilt during fast turns
-    maxTiltDeg: 12,
-    tiltFactor: 0.016,
-    tiltSettleSpeed: 12,
+    flipLerpSpeed: 10,
+    // Up to 10 degrees banking tilt during fast turns
+    maxTiltDeg: 10,
+    tiltFactor: 0.018,
+    tiltSettleSpeed: 10,
   },
 
   animation: {
-    walkSpeedThreshold: 12,
-    runSpeedThreshold: 380,
-    runExitThreshold: 280,
-    walkExitThreshold: 6,
+    // With lower maxSpeed, adjust thresholds proportionally
+    walkSpeedThreshold: 10,
+    runSpeedThreshold: 220,   // was 380 — lower so run kicks in at reasonable speed
+    runExitThreshold: 160,    // was 280
+    walkExitThreshold: 5,
     sitDelayMs: 2200,
     turnFacingThreshold: 0.65,
   },

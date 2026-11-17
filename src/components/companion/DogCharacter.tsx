@@ -95,7 +95,7 @@ export function DogCharacter({
       aria-label={`Pixel dog companion (${state})`}
     >
       <style>{`
-        /* Pixel Dog SVG base rendering */
+        /* ───────────── Pixel Dog SVG base rendering ───────────── */
         .pixel-dog-svg {
           width: 100%;
           height: 100%;
@@ -104,110 +104,128 @@ export function DogCharacter({
           image-rendering: pixelated;
           /*
            * Dual-contour drop shadow:
-           * 1. 1px crisp outline contour: ensures the pure white dog silhouette is distinctly
-           *    visible and crisp against light & pure white (#FFFFFF) backgrounds.
-           * 2. Soft 2px ambient shadow: provides depth and elevation against dark (#0a0a0f) backgrounds.
+           * 1. Crisp 1px perimeter: visible on pure white backgrounds.
+           * 2. Soft 2px ambient shadow: elevation on dark backgrounds.
            */
           filter: drop-shadow(0 0 1px rgba(0, 0, 0, 0.95)) drop-shadow(0 1px 2px rgba(0, 0, 0, 0.35));
           transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
 
-        /* All pixel frames hidden by default */
+        /*
+         * ─── FRAME VISIBILITY ──────────────────────────────────────────
+         * CRITICAL: We use opacity (0/1) rather than display (none/block) for frame switching.
+         * "display" cannot be reliably animated via CSS keyframes — browsers may render a
+         * blank intermediate frame at the toggle boundary, causing visible flickering.
+         * "opacity" is GPU-composited, flicker-free, and instant at steps(1).
+         */
         .pixel-frame {
-          display: none;
           fill: #FFFFFF;
+          opacity: 0;
+          /* Prevent layout shifts while hidden */
+          pointer-events: none;
         }
 
-        /* 1. Idle State: Calm resting pose with gentle 1px tail micro-wag */
+        /* ─── 1. IDLE: subtle tail wag every ~2s ─── */
         [data-state="idle"] .frame-idle1 {
-          display: inline;
-          animation: pixel-idle-a 2.2s steps(1) infinite;
+          opacity: 1;
+          animation: px-idle-a 2.4s steps(1) infinite;
         }
         [data-state="idle"] .frame-idle2 {
-          display: none;
-          animation: pixel-idle-b 2.2s steps(1) infinite;
+          opacity: 0;
+          animation: px-idle-b 2.4s steps(1) infinite;
+        }
+        @keyframes px-idle-a {
+          0%  { opacity: 1; }
+          84% { opacity: 1; }
+          84.01% { opacity: 0; }
+          100% { opacity: 0; }
+        }
+        @keyframes px-idle-b {
+          0%  { opacity: 0; }
+          84% { opacity: 0; }
+          84.01% { opacity: 1; }
+          100% { opacity: 1; }
         }
 
-        @keyframes pixel-idle-a {
-          0%, 82% { display: inline; }
-          82.01%, 100% { display: none; }
-        }
-        @keyframes pixel-idle-b {
-          0%, 82% { display: none; }
-          82.01%, 100% { display: inline; }
-        }
-
-        /* 1b. Excited Idle / Click React in Idle: High-speed tail wag */
+        /* Excited / click: fast tail wag */
         [data-state="idle"][data-excited="true"] .frame-idle1,
         [data-state="idle"][data-click-react="true"] .frame-idle1 {
-          animation: pixel-idle-fast-a 0.18s steps(1) infinite;
+          animation: px-idle-fast-a 0.22s steps(1) infinite;
         }
         [data-state="idle"][data-excited="true"] .frame-idle2,
         [data-state="idle"][data-click-react="true"] .frame-idle2 {
-          animation: pixel-idle-fast-b 0.18s steps(1) infinite;
+          animation: px-idle-fast-b 0.22s steps(1) infinite;
+        }
+        @keyframes px-idle-fast-a {
+          0%  { opacity: 1; }
+          50% { opacity: 1; }
+          50.01% { opacity: 0; }
+          100% { opacity: 0; }
+        }
+        @keyframes px-idle-fast-b {
+          0%  { opacity: 0; }
+          50% { opacity: 0; }
+          50.01% { opacity: 1; }
+          100% { opacity: 1; }
         }
 
-        @keyframes pixel-idle-fast-a {
-          0%, 50% { display: inline; }
-          50.01%, 100% { display: none; }
-        }
-        @keyframes pixel-idle-fast-b {
-          0%, 50% { display: none; }
-          50.01%, 100% { display: inline; }
-        }
-
-        /* 2. Walking State: Stepped 8-bit trot cycle */
+        /* ─── 2. WALKING: 2-frame trot, 0.38s cycle (slower = visible stride) ─── */
         [data-state="walking"] .frame-walk1 {
-          display: inline;
-          animation: pixel-walk-a 0.30s steps(1) infinite;
+          opacity: 1;
+          animation: px-walk-a 0.38s steps(1) infinite;
         }
         [data-state="walking"] .frame-walk2 {
-          display: none;
-          animation: pixel-walk-b 0.30s steps(1) infinite;
+          opacity: 0;
+          animation: px-walk-b 0.38s steps(1) infinite;
+        }
+        @keyframes px-walk-a {
+          0%  { opacity: 1; }
+          50% { opacity: 1; }
+          50.01% { opacity: 0; }
+          100% { opacity: 0; }
+        }
+        @keyframes px-walk-b {
+          0%  { opacity: 0; }
+          50% { opacity: 0; }
+          50.01% { opacity: 1; }
+          100% { opacity: 1; }
         }
 
-        @keyframes pixel-walk-a {
-          0%, 50% { display: inline; }
-          50.01%, 100% { display: none; }
-        }
-        @keyframes pixel-walk-b {
-          0%, 50% { display: none; }
-          50.01%, 100% { display: inline; }
-        }
-
-        /* 3. Running State: Stepped 8-bit gallop cycle */
-        /* Frame 1 is the exact pixel silhouette from the user's reference image */
+        /* ─── 3. RUNNING: 2-frame gallop, 0.18s cycle ─── */
         [data-state="running"] .frame-run1 {
-          display: inline;
-          animation: pixel-run-a 0.16s steps(1) infinite;
+          opacity: 1;
+          animation: px-run-a 0.18s steps(1) infinite;
         }
         [data-state="running"] .frame-run2 {
-          display: none;
-          animation: pixel-run-b 0.16s steps(1) infinite;
+          opacity: 0;
+          animation: px-run-b 0.18s steps(1) infinite;
+        }
+        @keyframes px-run-a {
+          0%  { opacity: 1; }
+          50% { opacity: 1; }
+          50.01% { opacity: 0; }
+          100% { opacity: 0; }
+        }
+        @keyframes px-run-b {
+          0%  { opacity: 0; }
+          50% { opacity: 0; }
+          50.01% { opacity: 1; }
+          100% { opacity: 1; }
         }
 
-        @keyframes pixel-run-a {
-          0%, 50% { display: inline; }
-          50.01%, 100% { display: none; }
-        }
-        @keyframes pixel-run-b {
-          0%, 50% { display: none; }
-          50.01%, 100% { display: inline; }
-        }
-
-        /* 4. Sitting State: Relaxed seated pixel silhouette */
+        /* ─── 4. SITTING: static pose ─── */
         [data-state="sitting"] .frame-sit {
-          display: inline;
+          opacity: 1;
         }
 
-        /* 5. Micro-Interactions & Gestures */
-        /* Click Reaction & Sprint Excitement Hop */
+        /* ─── 5. MICRO-INTERACTIONS ─── */
+        /* Click hop & post-chase excitement */
         [data-click-react="true"] .pixel-dog-svg,
         [data-state="idle"][data-excited="true"] .pixel-dog-svg {
-          animation: pixel-hop 0.34s cubic-bezier(0.22, 1, 0.36, 1) infinite alternate;
+          animation: pixel-hop 0.32s cubic-bezier(0.22, 1, 0.36, 1) infinite alternate;
         }
         @keyframes pixel-hop {
-          0% { transform: translateY(0); }
+          0%   { transform: translateY(0); }
           100% { transform: translateY(-4px); }
         }
 
@@ -215,6 +233,7 @@ export function DogCharacter({
         [data-gesture="tilt"] .pixel-dog-svg {
           transform: rotate(7deg);
           transform-origin: 24px 18px;
+          transition: transform 0.3s ease;
         }
 
         /* Curious Sniff / Lift */
@@ -229,18 +248,24 @@ export function DogCharacter({
           transform-origin: center center;
         }
 
-        /* Turning shadow deepening */
+        /* Turning: slightly deeper shadow */
         [data-turning="true"] .pixel-dog-svg {
           filter: drop-shadow(0 0 1px rgba(0, 0, 0, 0.95)) drop-shadow(0 2px 3px rgba(0, 0, 0, 0.45));
         }
 
-        /* Accessibility: respect prefers-reduced-motion */
+        /* ─── ACCESSIBILITY ─── */
         @media (prefers-reduced-motion: reduce) {
-          .frame-idle1, .frame-walk1, .frame-run1, .frame-sit {
+          [data-state="idle"] .frame-idle1,
+          [data-state="walking"] .frame-walk1,
+          [data-state="running"] .frame-run1,
+          [data-state="sitting"] .frame-sit {
+            opacity: 1 !important;
             animation: none !important;
           }
-          .frame-idle2, .frame-walk2, .frame-run2 {
-            display: none !important;
+          [data-state="idle"] .frame-idle2,
+          [data-state="walking"] .frame-walk2,
+          [data-state="running"] .frame-run2 {
+            opacity: 0 !important;
             animation: none !important;
           }
           .pixel-dog-svg {
