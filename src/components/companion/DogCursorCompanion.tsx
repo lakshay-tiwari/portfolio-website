@@ -9,7 +9,7 @@ import {
 } from "./dogMotionConfig";
 import { useCursorTracking } from "./useCursorTracking";
 import { useDogMotion } from "./useDogMotion";
-import { DogCharacter } from "./DogCharacter";
+import { DogCharacter, CharacterHeading } from "./DogCharacter";
 import { PawTrail, PawTrailHandle } from "./PawTrail";
 import { useDogPersonality } from "./useDogPersonality";
 
@@ -58,6 +58,7 @@ export function DogCursorCompanion({
 
   const [animState, setAnimState] = useState<DogAnimationState>("idle");
   const [isTurning, setIsTurning] = useState(false);
+  const [heading, setHeading] = useState<CharacterHeading>("down");
 
   // Merge custom config with defaults
   const config = useRef<DogMotionConfig>({
@@ -93,9 +94,10 @@ export function DogCursorCompanion({
 
   // Callback triggered on discrete locomotion state changes
   const handleStateChange = useCallback(
-    (nextState: DogAnimationState, turning: boolean) => {
+    (nextState: DogAnimationState, turning: boolean, nextHeading?: CharacterHeading) => {
       setAnimState(nextState);
       setIsTurning(turning);
+      if (nextHeading) setHeading(nextHeading);
     },
     []
   );
@@ -130,6 +132,7 @@ export function DogCursorCompanion({
           transformOrigin: "center center",
         }}
         data-state={animState}
+        data-heading={heading}
         data-turning={isTurning ? "true" : "false"}
         data-gesture="none"
         data-excited="false"
@@ -146,6 +149,7 @@ export function DogCursorCompanion({
         ) : (
           <DogCharacter
             state={animState}
+            heading={heading}
             isTurning={isTurning}
             width={config.size.width}
             height={config.size.height}

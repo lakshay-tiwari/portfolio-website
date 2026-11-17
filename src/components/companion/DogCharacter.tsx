@@ -10,11 +10,19 @@ import {
   CAT_WALK2,
   CAT_RUN1,
   CAT_RUN2,
+  CAT_DOWN1,
+  CAT_DOWN2,
+  CAT_UP1,
+  CAT_UP2,
 } from "./pixelFrames";
+
+export type CharacterHeading = "left" | "right" | "up" | "down";
 
 export interface DogCharacterProps {
   /** Current animation state derived from movement physics */
   state?: DogAnimationState;
+  /** 4-directional heading (up, down, left, right) */
+  heading?: CharacterHeading;
   /** Whether the cat is currently in the middle of turning */
   isTurning?: boolean;
   /** Active idle personality gesture */
@@ -63,6 +71,18 @@ const RUN1_RECTS = CAT_RUN1.map(([x, y, w], i) => (
 const RUN2_RECTS = CAT_RUN2.map(([x, y, w], i) => (
   <rect key={i} x={x} y={y} width={w} height={1} />
 ));
+const DOWN1_RECTS = CAT_DOWN1.map(([x, y, w], i) => (
+  <rect key={i} x={x} y={y} width={w} height={1} />
+));
+const DOWN2_RECTS = CAT_DOWN2.map(([x, y, w], i) => (
+  <rect key={i} x={x} y={y} width={w} height={1} />
+));
+const UP1_RECTS = CAT_UP1.map(([x, y, w], i) => (
+  <rect key={i} x={x} y={y} width={w} height={1} />
+));
+const UP2_RECTS = CAT_UP2.map(([x, y, w], i) => (
+  <rect key={i} x={x} y={y} width={w} height={1} />
+));
 
 /**
  * PixelCatCharacter
@@ -79,6 +99,7 @@ const RUN2_RECTS = CAT_RUN2.map(([x, y, w], i) => (
  */
 export function DogCharacter({
   state = "idle",
+  heading = "down",
   isTurning = false,
   gesture = "none",
   isExcited = false,
@@ -97,6 +118,7 @@ export function DogCharacter({
       className={`cat-character-root relative select-none pointer-events-none ${className}`}
       style={{ width: charWidth, height: charHeight }}
       data-state={state}
+      data-heading={heading}
       data-turning={isTurning ? "true" : "false"}
       data-gesture={gesture}
       data-excited={isExcited ? "true" : "false"}
@@ -212,14 +234,48 @@ export function DogCharacter({
           opacity: 1 !important;
         }
 
-        /* ─── 3. WALKING: Stepped 2-frame trot cycle ─────────────────── */
-        [data-state="walking"]:not([data-turning="true"]) .frame-walk1 {
+        /* ─── 3. FACING DOWN: Moving downwards towards cursor ────────── */
+        [data-heading="down"][data-state="walking"]:not([data-turning="true"]) .frame-down1,
+        [data-heading="down"][data-state="running"]:not([data-turning="true"]) .frame-down1 {
+          opacity: 1;
+          animation: cat-walk-cycle-a 0.28s steps(1) infinite;
+        }
+        [data-heading="down"][data-state="walking"]:not([data-turning="true"]) .frame-down2,
+        [data-heading="down"][data-state="running"]:not([data-turning="true"]) .frame-down2 {
+          opacity: 0;
+          animation: cat-walk-cycle-b 0.28s steps(1) infinite;
+        }
+
+        /* ─── 4. FACING UP: Moving upwards towards cursor ───────────── */
+        [data-heading="up"][data-state="walking"]:not([data-turning="true"]) .frame-up1,
+        [data-heading="up"][data-state="running"]:not([data-turning="true"]) .frame-up1 {
+          opacity: 1;
+          animation: cat-walk-cycle-a 0.28s steps(1) infinite;
+        }
+        [data-heading="up"][data-state="walking"]:not([data-turning="true"]) .frame-up2,
+        [data-heading="up"][data-state="running"]:not([data-turning="true"]) .frame-up2 {
+          opacity: 0;
+          animation: cat-walk-cycle-b 0.28s steps(1) infinite;
+        }
+
+        /* ─── 5. HORIZONTAL WALKING (Left / Right): Side profile ────── */
+        :not([data-heading="up"]):not([data-heading="down"])[data-state="walking"]:not([data-turning="true"]) .frame-walk1 {
           opacity: 1;
           animation: cat-walk-cycle-a 0.36s steps(1) infinite;
         }
-        [data-state="walking"]:not([data-turning="true"]) .frame-walk2 {
+        :not([data-heading="up"]):not([data-heading="down"])[data-state="walking"]:not([data-turning="true"]) .frame-walk2 {
           opacity: 0;
           animation: cat-walk-cycle-b 0.36s steps(1) infinite;
+        }
+
+        /* ─── 6. HORIZONTAL RUNNING (Left / Right): Side gallop ──────── */
+        :not([data-heading="up"]):not([data-heading="down"])[data-state="running"]:not([data-turning="true"]) .frame-run1 {
+          opacity: 1;
+          animation: cat-run-cycle-a 0.20s steps(1) infinite;
+        }
+        :not([data-heading="up"]):not([data-heading="down"])[data-state="running"]:not([data-turning="true"]) .frame-run2 {
+          opacity: 0;
+          animation: cat-run-cycle-b 0.20s steps(1) infinite;
         }
         @keyframes cat-walk-cycle-a {
           0%, 50%      { opacity: 1; }
@@ -228,16 +284,6 @@ export function DogCharacter({
         @keyframes cat-walk-cycle-b {
           0%, 50%      { opacity: 0; }
           50.01%, 100% { opacity: 1; }
-        }
-
-        /* ─── 4. RUNNING: Stepped 2-frame gallop cycle ───────────────── */
-        [data-state="running"]:not([data-turning="true"]) .frame-run1 {
-          opacity: 1;
-          animation: cat-run-cycle-a 0.20s steps(1) infinite;
-        }
-        [data-state="running"]:not([data-turning="true"]) .frame-run2 {
-          opacity: 0;
-          animation: cat-run-cycle-b 0.20s steps(1) infinite;
         }
         @keyframes cat-run-cycle-a {
           0%, 50%      { opacity: 1; }
@@ -248,7 +294,7 @@ export function DogCharacter({
           50.01%, 100% { opacity: 1; }
         }
 
-        /* ─── 5. MICRO-INTERACTION (CLICK REACTION) ───────────────── */
+        /* ─── 7. MICRO-INTERACTION (CLICK REACTION) ───────────────── */
         [data-click-react="true"] .pixel-cat-svg {
           animation: cat-hop 0.28s cubic-bezier(0.22, 1, 0.36, 1) infinite alternate;
         }
@@ -288,6 +334,10 @@ export function DogCharacter({
         <g className="cat-frame frame-walk2">{WALK2_RECTS}</g>
         <g className="cat-frame frame-run1">{RUN1_RECTS}</g>
         <g className="cat-frame frame-run2">{RUN2_RECTS}</g>
+        <g className="cat-frame frame-down1">{DOWN1_RECTS}</g>
+        <g className="cat-frame frame-down2">{DOWN2_RECTS}</g>
+        <g className="cat-frame frame-up1">{UP1_RECTS}</g>
+        <g className="cat-frame frame-up2">{UP2_RECTS}</g>
       </svg>
     </div>
   );
