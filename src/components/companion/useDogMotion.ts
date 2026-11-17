@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { DogMotionConfig } from "./dogMotionConfig";
+import { DogAnimationState, DogMotionConfig } from "./dogMotionConfig";
 import { CursorTrackingState } from "./useCursorTracking";
 
 export interface DogMotionState {
@@ -12,17 +12,24 @@ export interface DogMotionState {
   facing: number; // +1 = right, -1 = left
   facingScale: number; // smoothly lerped between -1 and +1
   tilt: number; // banking tilt in degrees
+  animationState: DogAnimationState;
+  isTurning: boolean;
+  speed: number;
 }
 
 /**
  * Runs a high-performance spring physics simulation loop on requestAnimationFrame,
  * applying position, smooth directional flip, and tilt directly to the DOM element
  * via transform: translate3d(...) with zero React state updates.
+ * 
+ * Also drives the animation state machine (idle, walking, running, sitting, turning)
+ * with velocity hysteresis and stationary sitting timers.
  */
 export function useDogMotion(
   elementRef: React.RefObject<HTMLDivElement | null>,
   trackingRef: React.MutableRefObject<CursorTrackingState>,
-  config: DogMotionConfig
+  config: DogMotionConfig,
+  onStateChange?: (state: DogAnimationState, isTurning: boolean) => void
 ) {
   const motionRef = useRef<DogMotionState>({
     currentX: config.initialPosition.x,
@@ -32,11 +39,17 @@ export function useDogMotion(
     facing: 1,
     facingScale: 1,
     tilt: 0,
+    animationState: "idle",
+    isTurning: false,
+    speed: 0,
   });
 
   useEffect(() => {
     let animationFrameId: number;
     let lastTime = performance.now();
+    let currentAnimState: DogAnimationState = "idle";
+    let isCurrentlyTurning = false;
+    let stationaryStartTime: number | null = performance.now();
 
     const {
       physics: { stiffness, damping, maxSpeed, mass, settleThreshold },
@@ -46,6 +59,14 @@ export function useDogMotion(
         maxTiltDeg,
         tiltFactor,
         tiltSettleSpeed,
+      },
+      animation: {
+        walkSpeedThreshold,
+        runSpeedThreshold,
+        runExitThreshold,
+        walkExitThreshold,
+        sitDelayMs,
+        turnFacingThreshold,
       },
     } = config;
 
@@ -82,15 +103,12 @@ export function useDogMotion(
         motion.tilt = 0;
       } else {
         // 3. Second-Order Damped Spring Physics (Semi-Implicit Euler)
-        // Spring forces: F = k * delta - c * velocity
         const fx = stiffness * dx - damping * motion.vx;
         const fy = stiffness * dy - damping * motion.vy;
 
-        // Accelerations: a = F / m
         const ax = fx / mass;
         const ay = fy / mass;
 
-        // Velocity integration
         motion.vx += ax * dt;
         motion.vy += ay * dt;
 
@@ -126,7 +144,80 @@ export function useDogMotion(
           (targetTilt - motion.tilt) * Math.min(1, dt * tiltSettleSpeed);
       }
 
-      // 6. Direct Hardware-Accelerated DOM Transform Update
+      // 6. Animation State Machine with Hysteresis
+      const currentSpeed = isSettled ? 0 : speed;
+      motion.speed = currentSpeed;
+
+      const isTurning =
+        Math.abs(motion.facingScale) < turnFacingThreshold &&
+        currentSpeed > walkSpeedThreshold;
+      motion.isTurning = isTurning;
+
+      let nextState = currentAnimState;
+
+      if (currentAnimState === "running") {
+        if (currentSpeed < runExitThreshold) {
+          nextState = "walking";
+        }
+      } else if (currentAnimState === "walking") {
+        if (currentSpeed >= runSpeedThreshold) {
+          nextState = "running";
+        } else if (currentSpeed < walkExitThreshold) {
+          nextState = "idle";
+          stationaryStartTime = now;
+        }
+      } else if (currentAnimState === "idle") {
+        if (currentSpeed >= runSpeedThreshold) {
+          nextState = "running";
+          stationaryStartTime = null;
+        } else if (currentSpeed >= walkSpeedThreshold) {
+          nextState = "walking";
+          stationaryStartTime = null;
+        } else {
+          // Stationary counting towards sitting
+          if (stationaryStartTime === null) {
+            stationaryStartTime = now;
+          } else if (now - stationaryStartTime >= sitDelayMs) {
+            nextState = "sitting";
+          }
+        }
+      } else if (currentAnimState === "sitting") {
+        if (currentSpeed >= runSpeedThreshold) {
+          nextState = "running";
+          stationaryStartTime = null;
+        } else if (currentSpeed >= walkSpeedThreshold) {
+          nextState = "walking";
+          stationaryStartTime = null;
+        }
+      }
+
+      // If state or turning changed, update DOM attributes and trigger callback
+      const stateChanged = nextState !== currentAnimState;
+      const turningChanged = isTurning !== isCurrentlyTurning;
+
+      if (stateChanged || turningChanged) {
+        currentAnimState = nextState;
+        isCurrentlyTurning = isTurning;
+        motion.animationState = nextState;
+
+        if (elementRef.current) {
+          elementRef.current.dataset.state = nextState;
+          elementRef.current.dataset.turning = isTurning ? "true" : "false";
+
+          // Also set on inner character root if present
+          const charRoot = elementRef.current.querySelector(
+            ".dog-character-root"
+          ) as HTMLElement | null;
+          if (charRoot) {
+            charRoot.dataset.state = nextState;
+            charRoot.dataset.turning = isTurning ? "true" : "false";
+          }
+        }
+
+        onStateChange?.(nextState, isTurning);
+      }
+
+      // 7. Direct Hardware-Accelerated DOM Transform Update
       if (elementRef.current) {
         const x = motion.currentX.toFixed(2);
         const y = motion.currentY.toFixed(2);
@@ -139,11 +230,13 @@ export function useDogMotion(
       animationFrameId = requestAnimationFrame(tick);
     };
 
-    // Initialize immediate initial placement
+    // Initialize immediate initial placement and default attributes
     if (elementRef.current) {
       const x = config.initialPosition.x;
       const y = config.initialPosition.y;
       elementRef.current.style.transform = `translate3d(${x}px, ${y}px, 0) scaleX(1) rotate(0deg)`;
+      elementRef.current.dataset.state = "idle";
+      elementRef.current.dataset.turning = "false";
     }
 
     animationFrameId = requestAnimationFrame(tick);
@@ -151,8 +244,7 @@ export function useDogMotion(
     return () => {
       cancelAnimationFrame(animationFrameId);
     };
-  }, [elementRef, trackingRef, config]);
+  }, [elementRef, trackingRef, config, onStateChange]);
 
   return motionRef;
 }
-

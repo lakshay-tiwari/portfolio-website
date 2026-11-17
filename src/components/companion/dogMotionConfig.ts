@@ -5,6 +5,8 @@
  * and boundary behavior of the cursor-following dog companion.
  */
 
+export type DogAnimationState = "idle" | "walking" | "running" | "sitting" | "turning";
+
 export interface DogMotionConfig {
   /** Dog character dimensions (in pixels) */
   size: {
@@ -80,6 +82,24 @@ export interface DogMotionConfig {
     /** Speed of tilt returning to upright 0deg when stationary */
     tiltSettleSpeed: number;
   };
+
+  /**
+   * Animation State Machine thresholds & timings
+   */
+  animation: {
+    /** Speed above which character begins walking (px/sec) */
+    walkSpeedThreshold: number;
+    /** Speed above which character begins running (px/sec) */
+    runSpeedThreshold: number;
+    /** Speed below which running drops back to walking (hysteresis) */
+    runExitThreshold: number;
+    /** Speed below which walking drops back to idle (hysteresis) */
+    walkExitThreshold: number;
+    /** Time stationary before sitting (ms) */
+    sitDelayMs: number;
+    /** Absolute facing scale threshold below which dog is considered actively turning */
+    turnFacingThreshold: number;
+  };
 }
 
 export const DEFAULT_DOG_CONFIG: DogMotionConfig = {
@@ -129,6 +149,15 @@ export const DEFAULT_DOG_CONFIG: DogMotionConfig = {
     maxTiltDeg: 12,
     tiltFactor: 0.016,
     tiltSettleSpeed: 12,
+  },
+
+  animation: {
+    walkSpeedThreshold: 12,
+    runSpeedThreshold: 380,
+    runExitThreshold: 280,
+    walkExitThreshold: 6,
+    sitDelayMs: 2200,
+    turnFacingThreshold: 0.65,
   },
 };
 
