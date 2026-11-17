@@ -64,7 +64,7 @@ export function classifyDirection(
   vx: number,
   vy: number,
   currentDir: DogDirection,
-  hysteresisDeg = 6
+  hysteresisDeg = 3
 ): DogDirection {
   let angleDeg = (Math.atan2(vy, vx) * 180) / Math.PI;
   if (angleDeg < 0) angleDeg += 360;
@@ -159,7 +159,7 @@ export function useDogMotion(
         walkExitThreshold,
         sitDelayMs,
       },
-      direction: { hysteresisDeg = 6 },
+      direction: { hysteresisDeg = 3 },
     } = config;
 
     const tick = (now: number) => {

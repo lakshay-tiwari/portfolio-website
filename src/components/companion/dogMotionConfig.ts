@@ -136,7 +136,7 @@ export interface DogMotionConfig {
    * 8-Directional Motion Configuration
    */
   direction: {
-    /** Angular hysteresis in degrees around the 45-degree sector boundaries (default: 6) */
+    /** Angular hysteresis in degrees around the 45-degree sector boundaries (default: 3) */
     hysteresisDeg: number;
   };
 
@@ -190,7 +190,7 @@ export const DEFAULT_DOG_CONFIG: DogMotionConfig = {
   boundaryHysteresis: 32,
 
   direction: {
-    hysteresisDeg: 6,
+    hysteresisDeg: 3,
   },
 
   physics: {
