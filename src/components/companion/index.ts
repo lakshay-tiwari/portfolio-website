@@ -16,3 +16,4 @@ export type {
 export type { DogCharacterProps } from "./DogCharacter";
 export type { PawTrailHandle, PawTrailProps } from "./PawTrail";
 export type { SpeechBubbleProps } from "./SpeechBubble";
+export * from "./pixelFrames";

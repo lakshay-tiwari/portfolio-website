@@ -144,8 +144,8 @@ export interface DogMotionConfig {
 
 export const DEFAULT_DOG_CONFIG: DogMotionConfig = {
   size: {
-    width: 60,
-    height: 60,
+    width: 56,
+    height: 42,
   },
 
   initialPosition: {
@@ -154,8 +154,8 @@ export const DEFAULT_DOG_CONFIG: DogMotionConfig = {
   },
 
   cursorOffset: {
-    gapX: 36,
-    offsetY: 6,
+    gapX: 34,
+    offsetY: 4,
   },
 
   boundaryPadding: {
@@ -213,7 +213,7 @@ export const DEFAULT_DOG_CONFIG: DogMotionConfig = {
     maxPawPrints: 8,
     pawDepositDistance: 32,
     enableDustParticles: true,
-    enableSpeechBubble: true,
+    enableSpeechBubble: false,
     speechBubbleCooldownMs: 26000,
   },
 };

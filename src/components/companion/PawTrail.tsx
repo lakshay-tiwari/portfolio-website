@@ -125,15 +125,14 @@ export const PawTrail = forwardRef<PawTrailHandle, PawTrailProps>(function PawTr
 
         .dust-puff-slot {
           position: absolute;
-          width: 8px;
-          height: 8px;
-          border-radius: 9999px;
+          width: 4px;
+          height: 4px;
           opacity: 0;
           pointer-events: none;
-          background: rgba(245, 158, 11, 0.35);
+          background: rgba(0, 0, 0, 0.25);
         }
         .dark .dust-puff-slot {
-          background: rgba(253, 230, 138, 0.28);
+          background: rgba(255, 255, 255, 0.25);
         }
         .dust-puff-active {
           animation: dog-dust-expand 0.42s ease-out forwards;
@@ -164,17 +163,20 @@ export const PawTrail = forwardRef<PawTrailHandle, PawTrailProps>(function PawTr
           ref={(el) => {
             pawRefs.current[i] = el;
           }}
-          className="paw-print-slot w-3.5 h-3.5 text-amber-800/40 dark:text-amber-300/35"
+          className="paw-print-slot w-2.5 h-2.5 text-zinc-600/40 dark:text-zinc-200/35"
         >
-          {/* Subtle Corgi Paw Pad Vector (1 Main Pad + 4 Oval Toes) */}
-          <svg viewBox="0 0 16 16" fill="currentColor" className="w-full h-full">
-            {/* Main Central Metacarpal Pad */}
-            <path d="M 4.5 10 C 4.5 7.5 11.5 7.5 11.5 10 C 11.5 13.5 4.5 13.5 4.5 10 Z" />
-            {/* 4 Little Toe Pads */}
-            <ellipse cx="4.2" cy="5.8" rx="1.4" ry="1.9" transform="rotate(-18 4.2 5.8)" />
-            <ellipse cx="6.8" cy="4.2" rx="1.4" ry="2" transform="rotate(-6 6.8 4.2)" />
-            <ellipse cx="9.6" cy="4.2" rx="1.4" ry="2" transform="rotate(6 9.6 4.2)" />
-            <ellipse cx="12.2" cy="5.8" rx="1.4" ry="1.9" transform="rotate(18 12.2 5.8)" />
+          {/* Minimalist 8-Bit Pixel Paw Print */}
+          <svg
+            viewBox="0 0 6 6"
+            fill="currentColor"
+            className="w-full h-full"
+            style={{ shapeRendering: "crispEdges" }}
+          >
+            <rect x="0" y="0" width="1" height="1" />
+            <rect x="2" y="0" width="2" height="1" />
+            <rect x="5" y="0" width="1" height="1" />
+            <rect x="1" y="2" width="4" height="2" />
+            <rect x="2" y="4" width="2" height="1" />
           </svg>
         </div>
       ))}

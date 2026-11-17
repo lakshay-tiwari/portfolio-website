@@ -11,7 +11,6 @@ import { useCursorTracking } from "./useCursorTracking";
 import { useDogMotion } from "./useDogMotion";
 import { DogCharacter } from "./DogCharacter";
 import { PawTrail, PawTrailHandle } from "./PawTrail";
-import { SpeechBubble } from "./SpeechBubble";
 import { useDogPersonality } from "./useDogPersonality";
 
 export interface DogCursorCompanionProps {
@@ -86,7 +85,7 @@ export function DogCursorCompanion({
   );
 
   // Personality & micro-interaction controller
-  const { speechState, onMotionStep } = useDogPersonality(
+  const { onMotionStep } = useDogPersonality(
     containerRef,
     config,
     handleDepositPaw
@@ -137,13 +136,6 @@ export function DogCursorCompanion({
         data-click-react="false"
         aria-hidden="true"
       >
-        {/* Floating Thought / Dialogue Bubble */}
-        <SpeechBubble
-          text={speechState.text}
-          visible={speechState.visible}
-          facing={trackingRef.current.isFlippedToLeft ? -1 : 1}
-        />
-
         {/* Character Visuals */}
         {renderCharacter ? (
           renderCharacter({
@@ -155,7 +147,8 @@ export function DogCursorCompanion({
           <DogCharacter
             state={animState}
             isTurning={isTurning}
-            size={config.size.width}
+            width={config.size.width}
+            height={config.size.height}
           />
         )}
       </div>
