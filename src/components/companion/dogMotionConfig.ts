@@ -7,6 +7,16 @@
 
 export type DogAnimationState = "idle" | "walking" | "running" | "sitting" | "turning";
 
+export type DogDirection =
+  | "up"
+  | "down"
+  | "left"
+  | "right"
+  | "up-left"
+  | "up-right"
+  | "down-left"
+  | "down-right";
+
 export type DogIdleGesture = "none" | "tilt" | "look-around" | "curious" | "happy-pant";
 
 export type DogReactionType = "none" | "click-react" | "chase-excited" | "greeting";
@@ -123,6 +133,14 @@ export interface DogMotionConfig {
   };
 
   /**
+   * 8-Directional Motion Configuration
+   */
+  direction: {
+    /** Angular hysteresis in degrees around the 45-degree sector boundaries (default: 6) */
+    hysteresisDeg: number;
+  };
+
+  /**
    * Animation State Machine thresholds & timings
    */
   animation: {
@@ -148,8 +166,8 @@ export interface DogMotionConfig {
 
 export const DEFAULT_DOG_CONFIG: DogMotionConfig = {
   size: {
-    width: 45,
-    height: 36,
+    width: 50,
+    height: 44,
   },
 
   initialPosition: {
@@ -170,6 +188,10 @@ export const DEFAULT_DOG_CONFIG: DogMotionConfig = {
   },
 
   boundaryHysteresis: 32,
+
+  direction: {
+    hysteresisDeg: 6,
+  },
 
   physics: {
     // k = 26: very gentle, relaxed pull (no aggressive rocket launch)

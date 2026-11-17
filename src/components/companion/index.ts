@@ -9,6 +9,7 @@ export { DEFAULT_DOG_CONFIG } from "./dogMotionConfig";
 export type {
   DogMotionConfig,
   DogAnimationState,
+  DogDirection,
   DogIdleGesture,
   DogReactionType,
   DogPersonalityConfig,
@@ -16,4 +17,5 @@ export type {
 export type { DogCharacterProps } from "./DogCharacter";
 export type { PawTrailHandle, PawTrailProps } from "./PawTrail";
 export type { SpeechBubbleProps } from "./SpeechBubble";
+export * from "./corgiPixelFrames";
 export * from "./pixelFrames";

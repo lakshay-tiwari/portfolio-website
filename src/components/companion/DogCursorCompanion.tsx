@@ -4,12 +4,13 @@ import { useRef, useState, useCallback } from "react";
 import {
   DEFAULT_DOG_CONFIG,
   DogAnimationState,
+  DogDirection,
   DogIdleGesture,
   DogMotionConfig,
 } from "./dogMotionConfig";
 import { useCursorTracking } from "./useCursorTracking";
 import { useDogMotion } from "./useDogMotion";
-import { DogCharacter, CharacterHeading } from "./DogCharacter";
+import { DogCharacter } from "./DogCharacter";
 import { PawTrail, PawTrailHandle } from "./PawTrail";
 import { useDogPersonality } from "./useDogPersonality";
 
@@ -58,7 +59,7 @@ export function DogCursorCompanion({
 
   const [animState, setAnimState] = useState<DogAnimationState>("idle");
   const [isTurning, setIsTurning] = useState(false);
-  const [heading, setHeading] = useState<CharacterHeading>("down");
+  const [direction, setDirection] = useState<DogDirection>("down");
 
   // Merge custom config with defaults
   const config = useRef<DogMotionConfig>({
@@ -69,6 +70,7 @@ export function DogCursorCompanion({
     cursorOffset: { ...DEFAULT_DOG_CONFIG.cursorOffset, ...userConfig?.cursorOffset },
     boundaryPadding: { ...DEFAULT_DOG_CONFIG.boundaryPadding, ...userConfig?.boundaryPadding },
     physics: { ...DEFAULT_DOG_CONFIG.physics, ...userConfig?.physics },
+    direction: { ...DEFAULT_DOG_CONFIG.direction, ...userConfig?.direction },
     orientation: { ...DEFAULT_DOG_CONFIG.orientation, ...userConfig?.orientation },
     animation: { ...DEFAULT_DOG_CONFIG.animation, ...userConfig?.animation },
     personality: { ...DEFAULT_DOG_CONFIG.personality, ...userConfig?.personality },
@@ -94,10 +96,10 @@ export function DogCursorCompanion({
 
   // Callback triggered on discrete locomotion state changes
   const handleStateChange = useCallback(
-    (nextState: DogAnimationState, turning: boolean, nextHeading?: CharacterHeading) => {
+    (nextState: DogAnimationState, turning: boolean, nextDirection?: DogDirection) => {
       setAnimState(nextState);
       setIsTurning(turning);
-      if (nextHeading) setHeading(nextHeading);
+      if (nextDirection) setDirection(nextDirection);
     },
     []
   );
@@ -129,10 +131,9 @@ export function DogCursorCompanion({
         style={{
           width: config.size.width,
           height: config.size.height,
-          transformOrigin: "center center",
         }}
         data-state={animState}
-        data-heading={heading}
+        data-direction={direction}
         data-turning={isTurning ? "true" : "false"}
         data-gesture="none"
         data-excited="false"
@@ -149,7 +150,7 @@ export function DogCursorCompanion({
         ) : (
           <DogCharacter
             state={animState}
-            heading={heading}
+            direction={direction}
             isTurning={isTurning}
             width={config.size.width}
             height={config.size.height}

@@ -1,20 +1,22 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { DogAnimationState, DogMotionConfig } from "./dogMotionConfig";
+import {
+  DogAnimationState,
+  DogDirection,
+  DogMotionConfig,
+} from "./dogMotionConfig";
 import { CursorTrackingState } from "./useCursorTracking";
 
-export type DogHeading = "left" | "right" | "up" | "down";
+export type { DogDirection } from "./dogMotionConfig";
 
 export interface DogMotionState {
   currentX: number;
   currentY: number;
   vx: number;
   vy: number;
+  direction: DogDirection;
   facing: number; // +1 = right, -1 = left
-  facingScale: number; // smoothly lerped between -1 and +1
-  heading: DogHeading; // 4-directional heading
-  tilt: number; // banking tilt in degrees
   animationState: DogAnimationState;
   isTurning: boolean;
   speed: number;
@@ -27,27 +29,89 @@ export interface DogMotionStepCallbackParams {
   vy: number;
   speed: number;
   facing: number;
+  direction?: DogDirection;
   state: DogAnimationState;
   isSettled: boolean;
 }
 
 /**
+ * 8-Directional Angular Sectors centered at 45-degree intervals.
+ * Browser coordinates: +X points Right, +Y points Down.
+ */
+export const DIRECTION_SECTORS: { dir: DogDirection; centerDeg: number }[] = [
+  { dir: "right", centerDeg: 0 },
+  { dir: "down-right", centerDeg: 45 },
+  { dir: "down", centerDeg: 90 },
+  { dir: "down-left", centerDeg: 135 },
+  { dir: "left", centerDeg: 180 },
+  { dir: "up-left", centerDeg: 225 },
+  { dir: "up", centerDeg: 270 },
+  { dir: "up-right", centerDeg: 315 },
+];
+
+/**
+ * Computes shortest angular difference between two angles in [0, 360).
+ */
+export function getAngleDiff(a: number, b: number): number {
+  const diff = ((a - b + 180) % 360) - 180;
+  return Math.abs(diff < -180 ? diff + 360 : diff);
+}
+
+/**
+ * Classifies velocity (vx, vy) into one of eight directional sectors with boundary hysteresis.
+ */
+export function classifyDirection(
+  vx: number,
+  vy: number,
+  currentDir: DogDirection,
+  hysteresisDeg = 6
+): DogDirection {
+  let angleDeg = (Math.atan2(vy, vx) * 180) / Math.PI;
+  if (angleDeg < 0) angleDeg += 360;
+
+  // 1. Maintain current sector if still within tolerance (22.5deg + hysteresis)
+  const currentSector = DIRECTION_SECTORS.find((s) => s.dir === currentDir);
+  if (currentSector) {
+    const diff = getAngleDiff(angleDeg, currentSector.centerDeg);
+    if (diff <= 22.5 + hysteresisDeg) {
+      return currentDir;
+    }
+  }
+
+  // 2. Otherwise snap to the closest sector
+  let closestDir = currentDir;
+  let minDiff = 999;
+  for (const sector of DIRECTION_SECTORS) {
+    const diff = getAngleDiff(angleDeg, sector.centerDeg);
+    if (diff < minDiff) {
+      minDiff = diff;
+      closestDir = sector.dir;
+    }
+  }
+
+  return closestDir;
+}
+
+/**
  * useDogMotion
  * 
- * Phase 4 Production-Optimized Movement Engine:
+ * Production Movement Engine:
  * - Second-Order Damped Spring Physics via Semi-Implicit Euler integration
+ * - Velocity-driven 8-directional classification with angular hysteresis
+ * - Preserves last facing direction when stationary
+ * - Turnaround transition detection for smooth directional changes
  * - Runs on requestAnimationFrame with zero per-frame React state updates
- * - Direct Hardware-Accelerated DOM transforms (translate3d, scaleX, rotate)
- * - Sleep gating: completely sleeps when tab is hidden or when screen is on mobile (<640px)
- * - Accessibility: adapts to prefers-reduced-motion with soft, zero-tilt, critically-damped glide
- * - Velocity hysteresis state machine preventing locomotion animation flickering
- * - Redundant style-write elimination when settled
+ * - Direct Hardware-Accelerated DOM translation without artificial CSS rotation
  */
 export function useDogMotion(
   elementRef: React.RefObject<HTMLDivElement | null>,
   trackingRef: React.MutableRefObject<CursorTrackingState>,
   config: DogMotionConfig,
-  onStateChange?: (state: DogAnimationState, isTurning: boolean, heading?: DogHeading) => void,
+  onStateChange?: (
+    state: DogAnimationState,
+    isTurning: boolean,
+    direction?: DogDirection
+  ) => void,
   onMotionStep?: (motion: DogMotionStepCallbackParams) => void
 ) {
   const motionRef = useRef<DogMotionState>({
@@ -55,10 +119,8 @@ export function useDogMotion(
     currentY: config.initialPosition.y,
     vx: 0,
     vy: 0,
+    direction: "down",
     facing: 1,
-    facingScale: 1,
-    heading: "down",
-    tilt: 0,
     animationState: "idle",
     isTurning: false,
     speed: 0,
@@ -69,8 +131,9 @@ export function useDogMotion(
     let lastTime = performance.now();
     let currentAnimState: DogAnimationState = "idle";
     let isCurrentlyTurning = false;
-    let currentHeading: DogHeading = "down";
+    let currentDirection: DogDirection = "down";
     let stationaryStartTime: number | null = performance.now();
+    let turnStartTime: number | null = null;
     let wasSettled = false;
 
     let lastTargetX = trackingRef.current.targetX;
@@ -81,14 +144,13 @@ export function useDogMotion(
     let dynamicOffsetY = 0;
 
     const {
-      physics: { stiffness, damping, maxSpeed, maxAcceleration = 420, mass, settleThreshold },
-      orientation: {
-        flipVelocityThreshold,
-        flipLerpSpeed,
-        maxTiltDeg,
-        tiltFactor,
-        tiltSettleSpeed,
-        maxVerticalPitchDeg = 14,
+      physics: {
+        stiffness,
+        damping,
+        maxSpeed,
+        maxAcceleration = 420,
+        mass,
+        settleThreshold,
       },
       animation: {
         walkSpeedThreshold,
@@ -96,8 +158,8 @@ export function useDogMotion(
         runExitThreshold,
         walkExitThreshold,
         sitDelayMs,
-        turnFacingThreshold,
       },
+      direction: { hysteresisDeg = 6 },
     } = config;
 
     const tick = (now: number) => {
@@ -110,7 +172,7 @@ export function useDogMotion(
         return;
       }
 
-      // 2. Delta Time (dt in seconds, clamped between 1ms and 64ms to prevent physics explosion on lag spikes)
+      // 2. Delta Time (dt in seconds, clamped between 1ms and 64ms)
       const rawDt = (now - lastTime) / 1000;
       lastTime = now;
       const dt = Math.max(0.001, Math.min(rawDt, 0.064));
@@ -129,24 +191,22 @@ export function useDogMotion(
       smoothTargetVy += (rawTargetVy - smoothTargetVy) * Math.min(1, dt * 10);
 
       // Dynamic direction-aware trailing offset:
-      // When moving DOWN (smoothTargetVy > 25): shift target above cursor so dog trails behind
-      // When moving UP (smoothTargetVy < -25): shift target below cursor so dog trails behind
       let desiredOffsetY = 0;
       let desiredOffsetX = 0;
 
       if (!tracking.isReducedMotion && tracking.isMouseInside) {
         if (smoothTargetVy > 25) {
-          const downLag = Math.min(42, (smoothTargetVy - 25) * 0.10);
+          const downLag = Math.min(36, (smoothTargetVy - 25) * 0.1);
           desiredOffsetY = -downLag;
         } else if (smoothTargetVy < -25) {
-          const upLag = Math.min(22, (-smoothTargetVy - 25) * 0.08);
+          const upLag = Math.min(20, (-smoothTargetVy - 25) * 0.08);
           desiredOffsetY = upLag;
         }
 
         if (smoothTargetVx > 35) {
-          desiredOffsetX = -Math.min(32, (smoothTargetVx - 35) * 0.07);
+          desiredOffsetX = -Math.min(28, (smoothTargetVx - 35) * 0.07);
         } else if (smoothTargetVx < -35) {
-          desiredOffsetX = Math.min(32, (-smoothTargetVx - 35) * 0.07);
+          desiredOffsetX = Math.min(28, (-smoothTargetVx - 35) * 0.07);
         }
       }
 
@@ -162,8 +222,14 @@ export function useDogMotion(
       const minY = config.boundaryPadding.top;
       const maxY = vpHeight - config.size.height - config.boundaryPadding.bottom;
 
-      const effectiveTargetX = Math.max(minX, Math.min(maxX, tracking.targetX + dynamicOffsetX));
-      const effectiveTargetY = Math.max(minY, Math.min(maxY, tracking.targetY + dynamicOffsetY));
+      const effectiveTargetX = Math.max(
+        minX,
+        Math.min(maxX, tracking.targetX + dynamicOffsetX)
+      );
+      const effectiveTargetY = Math.max(
+        minY,
+        Math.min(maxY, tracking.targetY + dynamicOffsetY)
+      );
 
       const motion = motionRef.current;
       const dx = effectiveTargetX - motion.currentX;
@@ -179,22 +245,18 @@ export function useDogMotion(
         Math.abs(dynamicOffsetX) < 0.5;
 
       if (isSettled) {
-        // Snap cleanly to rest and zero velocities
+        // Snap cleanly to rest and zero velocities (preserving last direction!)
         motion.currentX = tracking.targetX;
         motion.currentY = tracking.targetY;
         motion.vx = 0;
         motion.vy = 0;
-        motion.tilt = 0;
-        motion.heading = "down";
         dynamicOffsetX = 0;
         dynamicOffsetY = 0;
       } else {
         // 3. Second-Order Damped Spring Physics with Acceleration Clamping
-        // Force calculation: Hooke's Law F = -k*x with velocity damping F_damp = -c*v
-        // In reduced-motion mode: use softer critically damped spring with zero tilt
         const effectiveStiffness = tracking.isReducedMotion ? 18 : stiffness;
         const effectiveDamping = tracking.isReducedMotion
-          ? 2 * Math.sqrt(18 * mass) // Exact critical damping (zero overshoot)
+          ? 2 * Math.sqrt(18 * mass)
           : damping;
 
         const fx = effectiveStiffness * dx - effectiveDamping * motion.vx;
@@ -204,9 +266,11 @@ export function useDogMotion(
         let ax = fx / mass;
         let ay = fy / mass;
 
-        // Acceleration Clamping: prevents violent launches so the dog ramps up slowly and gently
+        // Acceleration Clamping: prevents violent launches so the dog ramps up gently
         const currentAccel = Math.hypot(ax, ay);
-        const effectiveMaxAccel = tracking.isReducedMotion ? maxAcceleration * 0.6 : maxAcceleration;
+        const effectiveMaxAccel = tracking.isReducedMotion
+          ? maxAcceleration * 0.6
+          : maxAcceleration;
         if (currentAccel > effectiveMaxAccel) {
           const accelRatio = effectiveMaxAccel / currentAccel;
           ax *= accelRatio;
@@ -216,9 +280,11 @@ export function useDogMotion(
         motion.vx += ax * dt;
         motion.vy += ay * dt;
 
-        // Velocity Clamping to enforce max speed ceiling (slow, steady pace)
+        // Velocity Clamping to enforce max speed ceiling
         const stepSpeed = Math.hypot(motion.vx, motion.vy);
-        const effectiveMaxSpeed = tracking.isReducedMotion ? maxSpeed * 0.7 : maxSpeed;
+        const effectiveMaxSpeed = tracking.isReducedMotion
+          ? maxSpeed * 0.7
+          : maxSpeed;
         if (stepSpeed > effectiveMaxSpeed) {
           const ratio = effectiveMaxSpeed / stepSpeed;
           motion.vx *= ratio;
@@ -229,60 +295,61 @@ export function useDogMotion(
         motion.currentX += motion.vx * dt;
         motion.currentY += motion.vy * dt;
 
-        // 4. Omnidirectional Heading & Facing Determination
+        // 4. 8-Directional Movement Classification with Hysteresis
         if (stepSpeed > walkExitThreshold) {
-          if (motion.vx > flipVelocityThreshold) {
-            motion.facing = 1;
-            motion.heading = "right";
-          } else if (motion.vx < -flipVelocityThreshold) {
-            motion.facing = -1;
-            motion.heading = "left";
-          } else {
-            // For nearly pure vertical motion, orient facing towards cursor X
-            const relX = tracking.mouseX - motion.currentX;
-            if (relX > 10) {
-              motion.facing = 1;
-            } else if (relX < -10) {
-              motion.facing = -1;
+          const nextDir = classifyDirection(
+            motion.vx,
+            motion.vy,
+            motion.direction,
+            hysteresisDeg
+          );
+
+          if (nextDir !== motion.direction) {
+            const oldSector = DIRECTION_SECTORS.find(
+              (s) => s.dir === motion.direction
+            );
+            const newSector = DIRECTION_SECTORS.find((s) => s.dir === nextDir);
+            if (oldSector && newSector) {
+              const turnAngle = getAngleDiff(
+                oldSector.centerDeg,
+                newSector.centerDeg
+              );
+              // Trigger turnaround animation for sharp turns (>= 90 degrees)
+              if (turnAngle >= 90) {
+                turnStartTime = now;
+              }
             }
-            motion.heading = motion.vy < 0 ? "up" : "down";
+            motion.direction = nextDir;
           }
-        }
 
-        // Smooth horizontal facing scale interpolation (+1 = right, -1 = left)
-        const targetFacingScale = motion.facing;
-        motion.facingScale +=
-          (targetFacingScale - motion.facingScale) * Math.min(1, dt * flipLerpSpeed);
-
-        // 5. Continuous Omnidirectional Orientation & Dynamic Pitch/Angle
-        if (tracking.isReducedMotion) {
-          motion.tilt = 0;
-        } else if (stepSpeed > walkExitThreshold) {
-          // Continuous omnidirectional rotation angle:
-          // In screen coordinates (+Y down, +X right):
-          // With scaleX(+1) (facing right), atan2(vy, vx) gives the heading angle.
-          // With scaleX(-1) (facing left), atan2(vy, |vx|) gives the symmetrical pitch angle!
-          const rawAngle = (Math.atan2(motion.vy, Math.abs(motion.vx)) * 180) / Math.PI;
-          // Soft ramp-up factor so very slow creeping starts level before tilting
-          const speedFactor = Math.min(1, stepSpeed / 25);
-          const targetTilt = Math.max(-maxTiltDeg, Math.min(maxTiltDeg, rawAngle * speedFactor));
-
-          motion.tilt +=
-            (targetTilt - motion.tilt) * Math.min(1, dt * tiltSettleSpeed);
-        } else {
-          // When stationary or settling, smoothly level back to 0deg upright seated pose
-          motion.tilt += (0 - motion.tilt) * Math.min(1, dt * tiltSettleSpeed);
+          if (
+            nextDir === "right" ||
+            nextDir === "up-right" ||
+            nextDir === "down-right"
+          ) {
+            motion.facing = 1;
+          } else if (
+            nextDir === "left" ||
+            nextDir === "up-left" ||
+            nextDir === "down-left"
+          ) {
+            motion.facing = -1;
+          }
         }
       }
 
-      // 6. Animation State Machine with Hysteresis (prevents rapid oscillation near speed thresholds)
+      // 5. Animation State Machine with Hysteresis
       const currentSpeed = isSettled ? 0 : speed;
       motion.speed = currentSpeed;
 
       const isTurning =
-        Math.abs(motion.facingScale) < turnFacingThreshold &&
-        currentSpeed > walkSpeedThreshold &&
+        turnStartTime !== null &&
+        now - turnStartTime < 240 &&
         !tracking.isReducedMotion;
+
+      if (turnStartTime !== null && now - turnStartTime >= 240) {
+        turnStartTime = null;
+      }
       motion.isTurning = isTurning;
 
       let nextState = currentAnimState;
@@ -321,49 +388,45 @@ export function useDogMotion(
         }
       }
 
-      // If state, turning, or heading changed, update DOM data attributes
+      // If state, turning, or direction changed, update DOM data attributes
       const stateChanged = nextState !== currentAnimState;
       const turningChanged = isTurning !== isCurrentlyTurning;
-      const headingChanged = motion.heading !== currentHeading;
+      const dirChanged = motion.direction !== currentDirection;
 
-      if (stateChanged || turningChanged || headingChanged) {
+      if (stateChanged || turningChanged || dirChanged) {
         currentAnimState = nextState;
         isCurrentlyTurning = isTurning;
-        currentHeading = motion.heading;
+        currentDirection = motion.direction;
         motion.animationState = nextState;
 
         if (elementRef.current) {
           elementRef.current.dataset.state = nextState;
           elementRef.current.dataset.turning = isTurning ? "true" : "false";
-          elementRef.current.dataset.heading = motion.heading;
+          elementRef.current.dataset.direction = motion.direction;
 
           const charRoot = elementRef.current.querySelector(
-            ".cat-character-root, .dog-character-root"
+            ".corgi-character-root, .cat-character-root, .dog-character-root"
           ) as HTMLElement | null;
           if (charRoot) {
             charRoot.dataset.state = nextState;
             charRoot.dataset.turning = isTurning ? "true" : "false";
-            charRoot.dataset.heading = motion.heading;
+            charRoot.dataset.direction = motion.direction;
           }
         }
 
-        onStateChange?.(nextState, isTurning, motion.heading);
+        onStateChange?.(nextState, isTurning, motion.direction);
       }
 
-      // 7. Hardware-Accelerated DOM Transform Update
-      // Only write transform if moving or entering settled state (avoids redundant DOM writes)
+      // 6. Hardware-Accelerated DOM Translation Update (Pure 3D translate, no artificial tilt)
       if (elementRef.current && (!isSettled || !wasSettled)) {
         const x = motion.currentX.toFixed(2);
         const y = motion.currentY.toFixed(2);
-        const scaleX = motion.facingScale.toFixed(3);
-        const rot = motion.tilt.toFixed(2);
-
-        elementRef.current.style.transform = `translate3d(${x}px, ${y}px, 0) scaleX(${scaleX}) rotate(${rot}deg)`;
+        elementRef.current.style.transform = `translate3d(${x}px, ${y}px, 0)`;
       }
 
       wasSettled = isSettled;
 
-      // 8. Motion Step Callback (Personality, Paw Trail, Chase Tracking)
+      // 7. Motion Step Callback (Personality, Paw Trail, Chase Tracking)
       onMotionStep?.({
         currentX: motion.currentX,
         currentY: motion.currentY,
@@ -371,6 +434,7 @@ export function useDogMotion(
         vy: motion.vy,
         speed: motion.speed,
         facing: motion.facing,
+        direction: motion.direction,
         state: motion.animationState,
         isSettled,
       });
@@ -382,9 +446,9 @@ export function useDogMotion(
     if (elementRef.current) {
       const x = config.initialPosition.x;
       const y = config.initialPosition.y;
-      elementRef.current.style.transform = `translate3d(${x}px, ${y}px, 0) scaleX(1) rotate(0deg)`;
+      elementRef.current.style.transform = `translate3d(${x}px, ${y}px, 0)`;
       elementRef.current.dataset.state = "idle";
-      elementRef.current.dataset.heading = "down";
+      elementRef.current.dataset.direction = "down";
       elementRef.current.dataset.turning = "false";
     }
 
