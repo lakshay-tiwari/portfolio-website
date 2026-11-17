@@ -68,6 +68,13 @@ export function useDogMotion(
     let stationaryStartTime: number | null = performance.now();
     let wasSettled = false;
 
+    let lastTargetX = trackingRef.current.targetX;
+    let lastTargetY = trackingRef.current.targetY;
+    let smoothTargetVx = 0;
+    let smoothTargetVy = 0;
+    let dynamicOffsetX = 0;
+    let dynamicOffsetY = 0;
+
     const {
       physics: { stiffness, damping, maxSpeed, maxAcceleration = 420, mass, settleThreshold },
       orientation: {
@@ -76,6 +83,7 @@ export function useDogMotion(
         maxTiltDeg,
         tiltFactor,
         tiltSettleSpeed,
+        maxVerticalPitchDeg = 14,
       },
       animation: {
         walkSpeedThreshold,
@@ -102,14 +110,68 @@ export function useDogMotion(
       lastTime = now;
       const dt = Math.max(0.001, Math.min(rawDt, 0.064));
 
+      // Compute instantaneous movement velocity of cursor target
+      const targetDx = tracking.targetX - lastTargetX;
+      const targetDy = tracking.targetY - lastTargetY;
+      lastTargetX = tracking.targetX;
+      lastTargetY = tracking.targetY;
+
+      const rawTargetVx = dt > 0 ? targetDx / dt : 0;
+      const rawTargetVy = dt > 0 ? targetDy / dt : 0;
+
+      // Smooth target velocity with exponential moving average to eliminate sensor jitter
+      smoothTargetVx += (rawTargetVx - smoothTargetVx) * Math.min(1, dt * 10);
+      smoothTargetVy += (rawTargetVy - smoothTargetVy) * Math.min(1, dt * 10);
+
+      // Dynamic direction-aware trailing offset:
+      // When moving DOWN (smoothTargetVy > 25): shift target above cursor so dog trails behind
+      // When moving UP (smoothTargetVy < -25): shift target below cursor so dog trails behind
+      let desiredOffsetY = 0;
+      let desiredOffsetX = 0;
+
+      if (!tracking.isReducedMotion && tracking.isMouseInside) {
+        if (smoothTargetVy > 25) {
+          const downLag = Math.min(42, (smoothTargetVy - 25) * 0.10);
+          desiredOffsetY = -downLag;
+        } else if (smoothTargetVy < -25) {
+          const upLag = Math.min(22, (-smoothTargetVy - 25) * 0.08);
+          desiredOffsetY = upLag;
+        }
+
+        if (smoothTargetVx > 35) {
+          desiredOffsetX = -Math.min(32, (smoothTargetVx - 35) * 0.07);
+        } else if (smoothTargetVx < -35) {
+          desiredOffsetX = Math.min(32, (-smoothTargetVx - 35) * 0.07);
+        }
+      }
+
+      // Smoothly interpolate active offsets towards desired
+      dynamicOffsetY += (desiredOffsetY - dynamicOffsetY) * Math.min(1, dt * 7);
+      dynamicOffsetX += (desiredOffsetX - dynamicOffsetX) * Math.min(1, dt * 7);
+
+      // Viewport boundary clamping for effective target
+      const vpWidth = window.innerWidth;
+      const vpHeight = window.innerHeight;
+      const minX = config.boundaryPadding.left;
+      const maxX = vpWidth - config.size.width - config.boundaryPadding.right;
+      const minY = config.boundaryPadding.top;
+      const maxY = vpHeight - config.size.height - config.boundaryPadding.bottom;
+
+      const effectiveTargetX = Math.max(minX, Math.min(maxX, tracking.targetX + dynamicOffsetX));
+      const effectiveTargetY = Math.max(minY, Math.min(maxY, tracking.targetY + dynamicOffsetY));
+
       const motion = motionRef.current;
-      const dx = tracking.targetX - motion.currentX;
-      const dy = tracking.targetY - motion.currentY;
+      const dx = effectiveTargetX - motion.currentX;
+      const dy = effectiveTargetY - motion.currentY;
       const dist = Math.hypot(dx, dy);
       const speed = Math.hypot(motion.vx, motion.vy);
 
-      // Settle check: within 0.25px and speed under 0.25px/s
-      const isSettled = dist < settleThreshold && speed < settleThreshold;
+      // Settle check: within 0.25px and speed under 0.25px/s with offsets settled
+      const isSettled =
+        dist < settleThreshold &&
+        speed < settleThreshold &&
+        Math.abs(dynamicOffsetY) < 0.5 &&
+        Math.abs(dynamicOffsetX) < 0.5;
 
       if (isSettled) {
         // Snap cleanly to rest and zero velocities
@@ -118,6 +180,8 @@ export function useDogMotion(
         motion.vx = 0;
         motion.vy = 0;
         motion.tilt = 0;
+        dynamicOffsetX = 0;
+        dynamicOffsetY = 0;
       } else {
         // 3. Second-Order Damped Spring Physics with Acceleration Clamping
         // Force calculation: Hooke's Law F = -k*x with velocity damping F_damp = -c*v
@@ -160,24 +224,47 @@ export function useDogMotion(
         motion.currentY += motion.vy * dt;
 
         // 4. Direction & Facing Flip (Deadband threshold prevents jittery left-right flipping)
-        if (motion.vx > flipVelocityThreshold) {
-          motion.facing = 1; // Facing right
-        } else if (motion.vx < -flipVelocityThreshold) {
-          motion.facing = -1; // Facing left
+        if (Math.abs(motion.vx) > flipVelocityThreshold) {
+          motion.facing = motion.vx > 0 ? 1 : -1; // Horizontal movement dictates facing
+        } else if (Math.abs(motion.vy) > walkExitThreshold) {
+          // Moving predominantly vertically: face towards the cursor's horizontal position
+          const relX = tracking.mouseX - motion.currentX;
+          if (relX > 10) {
+            motion.facing = 1; // Cursor is to right -> face right
+          } else if (relX < -10) {
+            motion.facing = -1; // Cursor is to left -> face left
+          }
         }
 
         // Smoothly lerp facingScale (-1 to +1) for organic turning transition
         motion.facingScale +=
           (motion.facing - motion.facingScale) * Math.min(1, dt * flipLerpSpeed);
 
-        // 5. Dynamic Banking Tilt (Tilt into movement direction, clamped to maxTiltDeg; disabled in reduced-motion)
+        // 5. Direction-Aware Pitch and Banking Tilt (Tilts into movement vector; disabled in reduced-motion)
         if (tracking.isReducedMotion) {
           motion.tilt = 0;
         } else {
-          const targetTilt = Math.max(
-            -maxTiltDeg,
-            Math.min(maxTiltDeg, motion.vx * tiltFactor)
-          );
+          let targetTilt = 0;
+          const currentSpeed = Math.hypot(motion.vx, motion.vy);
+
+          if (currentSpeed > walkExitThreshold) {
+            // Vertical pitch component: vy / currentSpeed
+            // vy < 0 (moving up) -> negative pitch (nose tilts up into climb)
+            // vy > 0 (moving down) -> positive pitch (nose tilts down into descent)
+            const verticalRatio = motion.vy / currentSpeed; // -1 (straight up) to +1 (straight down)
+            const speedFactor = Math.min(1, currentSpeed / 45); // full pitch achieved by 45px/s
+            const verticalPitch = verticalRatio * maxVerticalPitchDeg * speedFactor;
+
+            // Horizontal banking component (when moving horizontally)
+            const horizontalRatio = Math.abs(motion.vx) / currentSpeed;
+            const horizontalBank =
+              Math.max(-maxTiltDeg, Math.min(maxTiltDeg, motion.vx * tiltFactor)) *
+              horizontalRatio;
+
+            targetTilt = verticalPitch + horizontalBank;
+            targetTilt = Math.max(-18, Math.min(18, targetTilt));
+          }
+
           motion.tilt +=
             (targetTilt - motion.tilt) * Math.min(1, dt * tiltSettleSpeed);
         }

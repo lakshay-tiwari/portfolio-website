@@ -118,6 +118,8 @@ export interface DogMotionConfig {
     tiltFactor: number;
     /** Speed of tilt returning to upright 0deg when stationary */
     tiltSettleSpeed: number;
+    /** Maximum vertical pitch angle during climb/descent (in degrees) */
+    maxVerticalPitchDeg: number;
   };
 
   /**
@@ -191,7 +193,9 @@ export const DEFAULT_DOG_CONFIG: DogMotionConfig = {
     // Subtle banking tilt
     maxTiltDeg: 7,
     tiltFactor: 0.022,
-    tiltSettleSpeed: 8,
+    // Maximum vertical pitch angle during climb/descent
+    maxVerticalPitchDeg: 14,
+    tiltSettleSpeed: 9,
   },
 
   animation: {
