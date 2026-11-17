@@ -144,6 +144,10 @@ export function useDogPersonality(
    */
   const scheduleNextIdleGesture = useCallback(() => {
     if (!config.personality.enabled) return;
+    if (typeof window !== "undefined") {
+      if (window.innerWidth < 640) return; // Skip on mobile
+      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return; // Respect reduced motion
+    }
     if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
 
     const { idleMinIntervalMs, idleMaxIntervalMs, idleGestureDurationMs } =
@@ -183,6 +187,10 @@ export function useDogPersonality(
    */
   const triggerClickReaction = useCallback(() => {
     if (!config.personality.enabled) return;
+    if (typeof window !== "undefined") {
+      if (window.innerWidth < 640) return;
+      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    }
 
     abortIdleGesture();
     isClickReactingRef.current = true;
@@ -207,6 +215,11 @@ export function useDogPersonality(
    * Triggers arrival excitement when concluding a high-speed chase
    */
   const triggerChaseExcitement = useCallback(() => {
+    if (typeof window !== "undefined") {
+      if (window.innerWidth < 640) return;
+      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    }
+
     isExcitedRef.current = true;
     syncAttributes();
 
@@ -408,3 +421,4 @@ export function useDogPersonality(
     triggerSpeech,
   };
 }
+

@@ -41,6 +41,8 @@ export const PawTrail = forwardRef<PawTrailHandle, PawTrailProps>(function PawTr
     () => ({
       depositPaw(x, y, angleDeg, isRunning) {
         if (typeof window === "undefined") return;
+        // Skip particle and trail updates when user prefers reduced motion
+        if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
         // 1. Alternate foot offset perpendicular to travel angle for natural trotting tracks
         isLeftPaw.current = !isLeftPaw.current;
@@ -146,6 +148,13 @@ export const PawTrail = forwardRef<PawTrailHandle, PawTrailProps>(function PawTr
             transform: translate(-50%, -50%) scale(2.4) translateY(-3px);
           }
         }
+
+        @media (prefers-reduced-motion: reduce) {
+          .paw-print-slot,
+          .dust-puff-slot {
+            display: none !important;
+          }
+        }
       `}</style>
 
       {/* Pre-rendered Paw Prints Pool */}
@@ -183,3 +192,4 @@ export const PawTrail = forwardRef<PawTrailHandle, PawTrailProps>(function PawTr
     </div>
   );
 });
+

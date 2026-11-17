@@ -20,7 +20,7 @@ export function SpeechBubble({ text, facing = 1, visible }: SpeechBubbleProps) {
 
   return (
     <div
-      className={`absolute bottom-full left-1/2 -translate-x-1/2 mb-2 pointer-events-none select-none z-10 transition-all duration-300 ease-out origin-bottom ${
+      className={`absolute bottom-full left-1/2 -translate-x-1/2 mb-2 pointer-events-none select-none z-10 transition-all duration-300 ease-out origin-bottom motion-reduce:transition-none ${
         visible
           ? "opacity-100 scale-100 translate-y-0"
           : "opacity-0 scale-75 translate-y-2 pointer-events-none"
@@ -41,3 +41,4 @@ export function SpeechBubble({ text, facing = 1, visible }: SpeechBubbleProps) {
     </div>
   );
 }
+

@@ -17,29 +17,35 @@ export interface DogMotionState {
   speed: number;
 }
 
+export interface DogMotionStepCallbackParams {
+  currentX: number;
+  currentY: number;
+  vx: number;
+  vy: number;
+  speed: number;
+  facing: number;
+  state: DogAnimationState;
+  isSettled: boolean;
+}
+
 /**
- * Runs a high-performance spring physics simulation loop on requestAnimationFrame,
- * applying position, smooth directional flip, and tilt directly to the DOM element
- * via transform: translate3d(...) with zero React state updates.
+ * useDogMotion
  * 
- * Also drives the animation state machine (idle, walking, running, sitting, turning)
- * with velocity hysteresis and stationary sitting timers.
+ * Phase 4 Production-Optimized Movement Engine:
+ * - Second-Order Damped Spring Physics via Semi-Implicit Euler integration
+ * - Runs on requestAnimationFrame with zero per-frame React state updates
+ * - Direct Hardware-Accelerated DOM transforms (translate3d, scaleX, rotate)
+ * - Sleep gating: completely sleeps when tab is hidden or when screen is on mobile (<640px)
+ * - Accessibility: adapts to prefers-reduced-motion with soft, zero-tilt, critically-damped glide
+ * - Velocity hysteresis state machine preventing locomotion animation flickering
+ * - Redundant style-write elimination when settled
  */
 export function useDogMotion(
   elementRef: React.RefObject<HTMLDivElement | null>,
   trackingRef: React.MutableRefObject<CursorTrackingState>,
   config: DogMotionConfig,
   onStateChange?: (state: DogAnimationState, isTurning: boolean) => void,
-  onMotionStep?: (motion: {
-    currentX: number;
-    currentY: number;
-    vx: number;
-    vy: number;
-    speed: number;
-    facing: number;
-    state: DogAnimationState;
-    isSettled: boolean;
-  }) => void
+  onMotionStep?: (motion: DogMotionStepCallbackParams) => void
 ) {
   const motionRef = useRef<DogMotionState>({
     currentX: config.initialPosition.x,
@@ -60,6 +66,7 @@ export function useDogMotion(
     let currentAnimState: DogAnimationState = "idle";
     let isCurrentlyTurning = false;
     let stationaryStartTime: number | null = performance.now();
+    let wasSettled = false;
 
     const {
       physics: { stiffness, damping, maxSpeed, mass, settleThreshold },
@@ -81,48 +88,56 @@ export function useDogMotion(
     } = config;
 
     const tick = (now: number) => {
-      // 1. Check tab visibility
-      if (!trackingRef.current.isTabVisible) {
+      const tracking = trackingRef.current;
+
+      // 1. Sleep check: inactive tab or unsupported device (e.g. mobile <640px)
+      if (!tracking.isTabVisible || !tracking.isDeviceSupported) {
         lastTime = now;
         animationFrameId = requestAnimationFrame(tick);
         return;
       }
 
-      // 2. Compute delta time (clamped between 1ms and 64ms for stability)
+      // 2. Delta Time (dt in seconds, clamped between 1ms and 64ms to prevent physics explosion on lag spikes)
       const rawDt = (now - lastTime) / 1000;
       lastTime = now;
       const dt = Math.max(0.001, Math.min(rawDt, 0.064));
 
       const motion = motionRef.current;
-      const target = trackingRef.current;
-
-      const dx = target.targetX - motion.currentX;
-      const dy = target.targetY - motion.currentY;
+      const dx = tracking.targetX - motion.currentX;
+      const dy = tracking.targetY - motion.currentY;
       const dist = Math.hypot(dx, dy);
       const speed = Math.hypot(motion.vx, motion.vy);
 
-      // Check if settled at target
+      // Settle check: within 0.25px and speed under 0.25px/s
       const isSettled = dist < settleThreshold && speed < settleThreshold;
 
       if (isSettled) {
         // Snap cleanly to rest and zero velocities
-        motion.currentX = target.targetX;
-        motion.currentY = target.targetY;
+        motion.currentX = tracking.targetX;
+        motion.currentY = tracking.targetY;
         motion.vx = 0;
         motion.vy = 0;
         motion.tilt = 0;
       } else {
-        // 3. Second-Order Damped Spring Physics (Semi-Implicit Euler)
-        const fx = stiffness * dx - damping * motion.vx;
-        const fy = stiffness * dy - damping * motion.vy;
+        // 3. Second-Order Damped Spring Physics
+        // Force calculation: Hooke's Law F = -k*x with velocity damping F_damp = -c*v
+        // In reduced-motion mode: use softer critically damped spring with zero tilt
+        const effectiveStiffness = tracking.isReducedMotion ? 65 : stiffness;
+        const effectiveDamping = tracking.isReducedMotion
+          ? 2 * Math.sqrt(65 * mass) // Exact critical damping (zero overshoot)
+          : damping;
 
+        const fx = effectiveStiffness * dx - effectiveDamping * motion.vx;
+        const fy = effectiveStiffness * dy - effectiveDamping * motion.vy;
+
+        // Semi-implicit Euler integration: v_{t+1} = v_t + (F/m)*dt
         const ax = fx / mass;
         const ay = fy / mass;
 
         motion.vx += ax * dt;
         motion.vy += ay * dt;
 
-        // Speed clamping
+        // Velocity Clamping to enforce max speed ceiling
         const currentSpeed = Math.hypot(motion.vx, motion.vy);
         if (currentSpeed > maxSpeed) {
           const ratio = maxSpeed / currentSpeed;
@@ -130,37 +145,42 @@ export function useDogMotion(
           motion.vy *= ratio;
         }
 
-        // Position integration
+        // Position integration: x_{t+1} = x_t + v_{t+1}*dt
         motion.currentX += motion.vx * dt;
         motion.currentY += motion.vy * dt;
 
-        // 4. Direction & Facing Flip (with velocity deadband to avoid twitching)
+        // 4. Direction & Facing Flip (Deadband threshold prevents jittery left-right flipping)
         if (motion.vx > flipVelocityThreshold) {
           motion.facing = 1; // Facing right
         } else if (motion.vx < -flipVelocityThreshold) {
           motion.facing = -1; // Facing left
         }
 
-        // Smoothly lerp facingScale for organic turns
+        // Smoothly lerp facingScale (-1 to +1) for organic turning transition
         motion.facingScale +=
           (motion.facing - motion.facingScale) * Math.min(1, dt * flipLerpSpeed);
 
-        // 5. Dynamic Banking Tilt (tilt in movement direction, clamp to maxTiltDeg)
-        const targetTilt = Math.max(
-          -maxTiltDeg,
-          Math.min(maxTiltDeg, motion.vx * tiltFactor)
-        );
-        motion.tilt +=
-          (targetTilt - motion.tilt) * Math.min(1, dt * tiltSettleSpeed);
+        // 5. Dynamic Banking Tilt (Tilt into movement direction, clamped to maxTiltDeg; disabled in reduced-motion)
+        if (tracking.isReducedMotion) {
+          motion.tilt = 0;
+        } else {
+          const targetTilt = Math.max(
+            -maxTiltDeg,
+            Math.min(maxTiltDeg, motion.vx * tiltFactor)
+          );
+          motion.tilt +=
+            (targetTilt - motion.tilt) * Math.min(1, dt * tiltSettleSpeed);
+        }
       }
 
-      // 6. Animation State Machine with Hysteresis
+      // 6. Animation State Machine with Hysteresis (prevents rapid oscillation near speed thresholds)
       const currentSpeed = isSettled ? 0 : speed;
       motion.speed = currentSpeed;
 
       const isTurning =
         Math.abs(motion.facingScale) < turnFacingThreshold &&
-        currentSpeed > walkSpeedThreshold;
+        currentSpeed > walkSpeedThreshold &&
+        !tracking.isReducedMotion;
       motion.isTurning = isTurning;
 
       let nextState = currentAnimState;
@@ -179,12 +199,10 @@ export function useDogMotion(
       } else if (currentAnimState === "idle") {
         if (currentSpeed >= runSpeedThreshold) {
           nextState = "running";
-          stationaryStartTime = null;
         } else if (currentSpeed >= walkSpeedThreshold) {
           nextState = "walking";
-          stationaryStartTime = null;
         } else {
-          // Stationary counting towards sitting
+          // Stationary counting towards sitting pose
           if (stationaryStartTime === null) {
             stationaryStartTime = now;
           } else if (now - stationaryStartTime >= sitDelayMs) {
@@ -201,7 +219,7 @@ export function useDogMotion(
         }
       }
 
-      // If state or turning changed, update DOM attributes and trigger callback
+      // If state or turning changed, update DOM data attributes
       const stateChanged = nextState !== currentAnimState;
       const turningChanged = isTurning !== isCurrentlyTurning;
 
@@ -214,7 +232,6 @@ export function useDogMotion(
           elementRef.current.dataset.state = nextState;
           elementRef.current.dataset.turning = isTurning ? "true" : "false";
 
-          // Also set on inner character root if present
           const charRoot = elementRef.current.querySelector(
             ".dog-character-root"
           ) as HTMLElement | null;
@@ -227,8 +244,9 @@ export function useDogMotion(
         onStateChange?.(nextState, isTurning);
       }
 
-      // 7. Direct Hardware-Accelerated DOM Transform Update
-      if (elementRef.current) {
+      // 7. Hardware-Accelerated DOM Transform Update
+      // Only write transform if moving or entering settled state (avoids redundant DOM writes)
+      if (elementRef.current && (!isSettled || !wasSettled)) {
         const x = motion.currentX.toFixed(2);
         const y = motion.currentY.toFixed(2);
         const scaleX = motion.facingScale.toFixed(3);
@@ -237,7 +255,9 @@ export function useDogMotion(
         elementRef.current.style.transform = `translate3d(${x}px, ${y}px, 0) scaleX(${scaleX}) rotate(${rot}deg)`;
       }
 
-      // 8. Personality & Trail Step Callback
+      wasSettled = isSettled;
+
+      // 8. Motion Step Callback (Personality, Paw Trail, Chase Tracking)
       onMotionStep?.({
         currentX: motion.currentX,
         currentY: motion.currentY,
@@ -252,7 +272,7 @@ export function useDogMotion(
       animationFrameId = requestAnimationFrame(tick);
     };
 
-    // Initialize immediate initial placement and default attributes
+    // Initialize immediate initial placement
     if (elementRef.current) {
       const x = config.initialPosition.x;
       const y = config.initialPosition.y;

@@ -388,6 +388,36 @@ export function DogCharacter({
         [data-turning="true"] .dog-body-group {
           transform: scale(0.94, 1.03);
         }
+
+        /* 11. Accessibility: prefers-reduced-motion support */
+        @media (prefers-reduced-motion: reduce) {
+          .dog-shadow,
+          .dog-body-group,
+          .dog-tail,
+          .dog-torso,
+          .dog-head-group,
+          .dog-ear-near,
+          .dog-ear-far,
+          .dog-eye,
+          .dog-tongue,
+          .leg-joint-front-near,
+          .leg-joint-front-far,
+          .leg-joint-back-near,
+          .leg-joint-back-far {
+            animation: none !important;
+            transition: none !important;
+          }
+          [data-state="walking"] .dog-body-group,
+          [data-state="running"] .dog-body-group,
+          [data-click-react="true"] .dog-body-group {
+            transform: none !important;
+          }
+          [data-gesture="tilt"] .dog-head-group,
+          [data-gesture="look-around"] .dog-head-group,
+          [data-gesture="curious"] .dog-head-group {
+            transform: none !important;
+          }
+        }
       `}</style>
 
       <svg
