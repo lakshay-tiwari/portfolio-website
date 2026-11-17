@@ -96,6 +96,8 @@ export interface DogMotionConfig {
     damping: number;
     /** Maximum velocity allowed in px/sec to prevent violent jumps */
     maxSpeed: number;
+    /** Maximum acceleration allowed in px/sec^2 to ensure slow, gentle ramp-up */
+    maxAcceleration: number;
     /** Virtual mass of the companion */
     mass: number;
     /** Minimum threshold for distance and velocity below which motion sleeps */
@@ -168,35 +170,37 @@ export const DEFAULT_DOG_CONFIG: DogMotionConfig = {
   boundaryHysteresis: 32,
 
   physics: {
-    // k = 65: responsive but not frantic — roughly half the previous 140
-    stiffness: 65,
-    // c = 18: slightly under critical damping for a subtle organic settle
-    damping: 18,
-    // Maximum movement speed — capped much lower so the dog never rockets across screen
-    maxSpeed: 700,
+    // k = 26: very gentle, relaxed pull (no aggressive rocket launch)
+    stiffness: 26,
+    // c = 10.5: near critical damping (2 * sqrt(26) ≈ 10.2) for smooth, peaceful settle without oscillation
+    damping: 10.5,
+    // Maximum movement speed — capped at a leisurely, gentle trot (230px/s)
+    maxSpeed: 230,
+    // Maximum acceleration — limits launch force so the dog gradually and slowly picks up speed
+    maxAcceleration: 420,
     mass: 1.0,
     // Sleep when position diff < 0.25px and speed < 0.5px/s
     settleThreshold: 0.25,
   },
 
   orientation: {
-    // Only flip if velocity exceeds 18px/s to prevent nervous twitching
-    flipVelocityThreshold: 18,
+    // Velocity threshold to flip facing direction
+    flipVelocityThreshold: 12,
     // Smooth turn flip interpolation rate
-    flipLerpSpeed: 10,
-    // Up to 10 degrees banking tilt during fast turns
-    maxTiltDeg: 10,
-    tiltFactor: 0.018,
-    tiltSettleSpeed: 10,
+    flipLerpSpeed: 8,
+    // Subtle banking tilt
+    maxTiltDeg: 7,
+    tiltFactor: 0.022,
+    tiltSettleSpeed: 8,
   },
 
   animation: {
-    // With lower maxSpeed, adjust thresholds proportionally
-    walkSpeedThreshold: 10,
-    runSpeedThreshold: 220,   // was 380 — lower so run kicks in at reasonable speed
-    runExitThreshold: 160,    // was 280
-    walkExitThreshold: 5,
-    sitDelayMs: 2200,
+    // Speed thresholds tailored to the slow, gentle movement
+    walkSpeedThreshold: 8,
+    runSpeedThreshold: 130,
+    runExitThreshold: 90,
+    walkExitThreshold: 4,
+    sitDelayMs: 2000,
     turnFacingThreshold: 0.65,
   },
 

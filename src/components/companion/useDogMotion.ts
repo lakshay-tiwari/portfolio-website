@@ -69,7 +69,7 @@ export function useDogMotion(
     let wasSettled = false;
 
     const {
-      physics: { stiffness, damping, maxSpeed, mass, settleThreshold },
+      physics: { stiffness, damping, maxSpeed, maxAcceleration = 420, mass, settleThreshold },
       orientation: {
         flipVelocityThreshold,
         flipLerpSpeed,
@@ -119,28 +119,38 @@ export function useDogMotion(
         motion.vy = 0;
         motion.tilt = 0;
       } else {
-        // 3. Second-Order Damped Spring Physics
+        // 3. Second-Order Damped Spring Physics with Acceleration Clamping
         // Force calculation: Hooke's Law F = -k*x with velocity damping F_damp = -c*v
         // In reduced-motion mode: use softer critically damped spring with zero tilt
-        const effectiveStiffness = tracking.isReducedMotion ? 65 : stiffness;
+        const effectiveStiffness = tracking.isReducedMotion ? 18 : stiffness;
         const effectiveDamping = tracking.isReducedMotion
-          ? 2 * Math.sqrt(65 * mass) // Exact critical damping (zero overshoot)
+          ? 2 * Math.sqrt(18 * mass) // Exact critical damping (zero overshoot)
           : damping;
 
         const fx = effectiveStiffness * dx - effectiveDamping * motion.vx;
         const fy = effectiveStiffness * dy - effectiveDamping * motion.vy;
 
-        // Semi-implicit Euler integration: v_{t+1} = v_t + (F/m)*dt
-        const ax = fx / mass;
-        const ay = fy / mass;
+        // Semi-implicit Euler integration: v_{t+1} = v_t + a*dt
+        let ax = fx / mass;
+        let ay = fy / mass;
+
+        // Acceleration Clamping: prevents violent launches so the dog ramps up slowly and gently
+        const currentAccel = Math.hypot(ax, ay);
+        const effectiveMaxAccel = tracking.isReducedMotion ? maxAcceleration * 0.6 : maxAcceleration;
+        if (currentAccel > effectiveMaxAccel) {
+          const accelRatio = effectiveMaxAccel / currentAccel;
+          ax *= accelRatio;
+          ay *= accelRatio;
+        }
 
         motion.vx += ax * dt;
         motion.vy += ay * dt;
 
-        // Velocity Clamping to enforce max speed ceiling
+        // Velocity Clamping to enforce max speed ceiling (slow, steady pace)
         const currentSpeed = Math.hypot(motion.vx, motion.vy);
-        if (currentSpeed > maxSpeed) {
-          const ratio = maxSpeed / currentSpeed;
+        const effectiveMaxSpeed = tracking.isReducedMotion ? maxSpeed * 0.7 : maxSpeed;
+        if (currentSpeed > effectiveMaxSpeed) {
+          const ratio = effectiveMaxSpeed / currentSpeed;
           motion.vx *= ratio;
           motion.vy *= ratio;
         }

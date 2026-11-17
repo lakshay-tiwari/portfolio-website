@@ -169,14 +169,14 @@ export function DogCharacter({
           100% { opacity: 1; }
         }
 
-        /* ─── 2. WALKING: 2-frame trot, 0.38s cycle (slower = visible stride) ─── */
+        /* ─── 2. WALKING: 2-frame trot, 0.44s cycle (relaxed stride) ─── */
         [data-state="walking"] .frame-walk1 {
           opacity: 1;
-          animation: px-walk-a 0.38s steps(1) infinite;
+          animation: px-walk-a 0.44s steps(1) infinite;
         }
         [data-state="walking"] .frame-walk2 {
           opacity: 0;
-          animation: px-walk-b 0.38s steps(1) infinite;
+          animation: px-walk-b 0.44s steps(1) infinite;
         }
         @keyframes px-walk-a {
           0%  { opacity: 1; }
@@ -191,14 +191,14 @@ export function DogCharacter({
           100% { opacity: 1; }
         }
 
-        /* ─── 3. RUNNING: 2-frame gallop, 0.18s cycle ─── */
+        /* ─── 3. RUNNING: 2-frame gallop, 0.22s cycle (gentle gallop) ─── */
         [data-state="running"] .frame-run1 {
           opacity: 1;
-          animation: px-run-a 0.18s steps(1) infinite;
+          animation: px-run-a 0.22s steps(1) infinite;
         }
         [data-state="running"] .frame-run2 {
           opacity: 0;
-          animation: px-run-b 0.18s steps(1) infinite;
+          animation: px-run-b 0.22s steps(1) infinite;
         }
         @keyframes px-run-a {
           0%  { opacity: 1; }
