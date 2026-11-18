@@ -1,4 +1,9 @@
-export { DogCursorCompanion } from "./DogCursorCompanion";
+export { PixelCatCompanion } from "./PixelCatCompanion";
+export type { PixelCatProps, CatDirection } from "./PixelCatCompanion";
+export { SPEED, IDLE_RADIUS, TICK_RATE_MS, SPRITE_SETS } from "./PixelCatCompanion";
+
+// Alias for backwards compatibility with any existing companion references
+export { PixelCatCompanion as DogCursorCompanion } from "./PixelCatCompanion";
 export { DogCharacter } from "./DogCharacter";
 export { PawTrail } from "./PawTrail";
 export { SpeechBubble } from "./SpeechBubble";
