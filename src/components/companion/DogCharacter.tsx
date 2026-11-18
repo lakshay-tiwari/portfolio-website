@@ -176,13 +176,13 @@ export function DogCharacter({
           50.01%, 100% { opacity: 1; }
         }
 
-        /* ─── 4. TURNING: slight crouch compression transition ───────── */
+        /* ─── 4. TURNING: subtle dynamic crouch compression during sharp pivots ── */
         [data-turning="true"] .corgi-frame {
           transform: scale(0.96, 0.94);
           transform-origin: 18px 24px;
         }
-        [data-turning="true"] .frame-walk1 {
-          opacity: 1 !important;
+        [data-turning="true"][data-state="idle"] .frame-walk1 {
+          opacity: 1;
         }
 
         /* ─── 5. MICRO-INTERACTION (CLICK REACTION) ───────────────── */

@@ -106,8 +106,12 @@ export interface DogMotionConfig {
     damping: number;
     /** Maximum velocity allowed in px/sec to prevent violent jumps */
     maxSpeed: number;
-    /** Maximum acceleration allowed in px/sec^2 to ensure slow, gentle ramp-up */
+    /** Maximum acceleration allowed in px/sec^2 for responsive ramp-up */
     maxAcceleration: number;
+    /** Maximum deceleration allowed in px/sec^2 for smooth braking */
+    maxDeceleration?: number;
+    /** Distance in pixels at which arrival deceleration begins */
+    decelRadius?: number;
     /** Virtual mass of the companion */
     mass: number;
     /** Minimum threshold for distance and velocity below which motion sleeps */
@@ -194,17 +198,21 @@ export const DEFAULT_DOG_CONFIG: DogMotionConfig = {
   },
 
   physics: {
-    // k = 26: very gentle, relaxed pull (no aggressive rocket launch)
-    stiffness: 26,
-    // c = 10.5: near critical damping (2 * sqrt(26) ≈ 10.2) for smooth, peaceful settle without oscillation
-    damping: 10.5,
-    // Maximum movement speed — capped at a leisurely, gentle trot (230px/s)
-    maxSpeed: 230,
-    // Maximum acceleration — limits launch force so the dog gradually and slowly picks up speed
-    maxAcceleration: 420,
+    // k = 40: spring stiffness reference
+    stiffness: 40,
+    // c = 12.6: critical damping reference (2 * sqrt(40) ≈ 12.6)
+    damping: 12.6,
+    // Maximum movement speed — 280px/s provides natural trot/gallop pacing
+    maxSpeed: 280,
+    // Maximum acceleration — 750px/s^2 for responsive, natural launch (~0.35s to max speed)
+    maxAcceleration: 750,
+    // Maximum deceleration — 950px/s^2 for smooth, crisp braking without abrupt stopping
+    maxDeceleration: 950,
+    // Arrival deceleration radius — braking begins when within 75px of destination
+    decelRadius: 75,
     mass: 1.0,
-    // Sleep when position diff < 0.25px and speed < 0.5px/s
-    settleThreshold: 0.25,
+    // Settle threshold: snap cleanly when within 0.8px and speed <= 1.0px/s
+    settleThreshold: 0.8,
   },
 
   orientation: {
@@ -221,12 +229,12 @@ export const DEFAULT_DOG_CONFIG: DogMotionConfig = {
   },
 
   animation: {
-    // Speed thresholds tailored to the slow, gentle movement
-    walkSpeedThreshold: 8,
-    runSpeedThreshold: 130,
-    runExitThreshold: 90,
-    walkExitThreshold: 4,
-    sitDelayMs: 2000,
+    // Speed thresholds for natural walk → run transitions
+    walkSpeedThreshold: 15,
+    runSpeedThreshold: 100,
+    runExitThreshold: 60,
+    walkExitThreshold: 8,
+    sitDelayMs: 2500,
     turnFacingThreshold: 0.65,
   },
 

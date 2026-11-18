@@ -96,11 +96,11 @@ export function classifyDirection(
  * useDogMotion
  * 
  * Production Movement Engine:
- * - Second-Order Damped Spring Physics via Semi-Implicit Euler integration
+ * - True Vector-Normalized Kinematic Movement with Smooth Arrival Deceleration
+ * - Zero axis locking: X and Y displacements scale simultaneously and symmetrically
  * - Velocity-driven 8-directional classification with angular hysteresis
- * - Preserves last facing direction when stationary
- * - Turnaround transition detection for smooth directional changes
- * - Runs on requestAnimationFrame with zero per-frame React state updates
+ * - Preserves last facing direction when stationary (no flickering or defaulting)
+ * - Delta-time frame-rate independence (60Hz, 120Hz, 144Hz)
  * - Direct Hardware-Accelerated DOM translation without artificial CSS rotation
  */
 export function useDogMotion(
@@ -136,21 +136,13 @@ export function useDogMotion(
     let turnStartTime: number | null = null;
     let wasSettled = false;
 
-    let lastTargetX = trackingRef.current.targetX;
-    let lastTargetY = trackingRef.current.targetY;
-    let smoothTargetVx = 0;
-    let smoothTargetVy = 0;
-    let dynamicOffsetX = 0;
-    let dynamicOffsetY = 0;
-
     const {
       physics: {
-        stiffness,
-        damping,
-        maxSpeed,
-        maxAcceleration = 420,
-        mass,
-        settleThreshold,
+        maxSpeed = 280,
+        maxAcceleration = 750,
+        maxDeceleration = 950,
+        decelRadius = 75,
+        settleThreshold = 0.8,
       },
       animation: {
         walkSpeedThreshold,
@@ -172,130 +164,128 @@ export function useDogMotion(
         return;
       }
 
-      // 2. Delta Time (dt in seconds, clamped between 1ms and 64ms)
+      // 2. Delta Time (dt in seconds, clamped between 1ms and 64ms for frame-rate independence)
       const rawDt = (now - lastTime) / 1000;
       lastTime = now;
       const dt = Math.max(0.001, Math.min(rawDt, 0.064));
 
-      // Compute instantaneous movement velocity of cursor target
-      const targetDx = tracking.targetX - lastTargetX;
-      const targetDy = tracking.targetY - lastTargetY;
-      lastTargetX = tracking.targetX;
-      lastTargetY = tracking.targetY;
-
-      const rawTargetVx = dt > 0 ? targetDx / dt : 0;
-      const rawTargetVy = dt > 0 ? targetDy / dt : 0;
-
-      // Smooth target velocity with exponential moving average to eliminate sensor jitter
-      smoothTargetVx += (rawTargetVx - smoothTargetVx) * Math.min(1, dt * 10);
-      smoothTargetVy += (rawTargetVy - smoothTargetVy) * Math.min(1, dt * 10);
-
-      // Dynamic direction-aware trailing offset:
-      let desiredOffsetY = 0;
-      let desiredOffsetX = 0;
-
-      if (!tracking.isReducedMotion && tracking.isMouseInside) {
-        if (smoothTargetVy > 25) {
-          const downLag = Math.min(36, (smoothTargetVy - 25) * 0.1);
-          desiredOffsetY = -downLag;
-        } else if (smoothTargetVy < -25) {
-          const upLag = Math.min(20, (-smoothTargetVy - 25) * 0.08);
-          desiredOffsetY = upLag;
-        }
-
-        if (smoothTargetVx > 35) {
-          desiredOffsetX = -Math.min(28, (smoothTargetVx - 35) * 0.07);
-        } else if (smoothTargetVx < -35) {
-          desiredOffsetX = Math.min(28, (-smoothTargetVx - 35) * 0.07);
-        }
-      }
-
-      // Smoothly interpolate active offsets towards desired
-      dynamicOffsetY += (desiredOffsetY - dynamicOffsetY) * Math.min(1, dt * 7);
-      dynamicOffsetX += (desiredOffsetX - dynamicOffsetX) * Math.min(1, dt * 7);
-
-      // Viewport boundary clamping for effective target
+      // 3. Viewport Boundaries
       const vpWidth = window.innerWidth;
       const vpHeight = window.innerHeight;
       const minX = config.boundaryPadding.left;
-      const maxX = vpWidth - config.size.width - config.boundaryPadding.right;
+      const maxX = Math.max(minX, vpWidth - config.size.width - config.boundaryPadding.right);
       const minY = config.boundaryPadding.top;
-      const maxY = vpHeight - config.size.height - config.boundaryPadding.bottom;
-
-      const effectiveTargetX = Math.max(
-        minX,
-        Math.min(maxX, tracking.targetX + dynamicOffsetX)
-      );
-      const effectiveTargetY = Math.max(
-        minY,
-        Math.min(maxY, tracking.targetY + dynamicOffsetY)
-      );
+      const maxY = Math.max(minY, vpHeight - config.size.height - config.boundaryPadding.bottom);
 
       const motion = motionRef.current;
+
+      // 4. Destination Target Calculation
+      let targetX: number;
+      let targetY: number;
+
+      if (!tracking.isMouseInside) {
+        targetX = config.initialPosition.x;
+        targetY = config.initialPosition.y;
+      } else {
+        // Dynamic horizontal spacing:
+        // When cursor is predominantly above/below companion, reduce horizontal offset
+        // so the companion travels straight along the vertical axis without an artificial horizontal jog.
+        const dogCenterX = motion.currentX + config.size.width / 2;
+        const dogCenterY = motion.currentY + config.size.height / 2;
+        const relDx = Math.abs(tracking.mouseX - dogCenterX);
+        const relDy = Math.abs(tracking.mouseY - dogCenterY);
+
+        let horizontalWeight = 1.0;
+        if (relDy > 35) {
+          horizontalWeight = Math.min(1.0, Math.max(0.0, (relDx - 8) / 24));
+        }
+
+        if (tracking.isFlippedToLeft) {
+          const leftOffset = config.cursorOffset.gapX * horizontalWeight + config.size.width;
+          targetX = tracking.mouseX - leftOffset;
+        } else {
+          const rightOffset = config.cursorOffset.gapX * horizontalWeight;
+          targetX = tracking.mouseX + rightOffset;
+        }
+
+        targetY = tracking.mouseY + config.cursorOffset.offsetY;
+      }
+
+      // Clamp target strictly within valid viewport bounds
+      const effectiveTargetX = Math.max(minX, Math.min(maxX, targetX));
+      const effectiveTargetY = Math.max(minY, Math.min(maxY, targetY));
+
+      // Mirror effective target to tracking ref for external consumers
+      tracking.targetX = effectiveTargetX;
+      tracking.targetY = effectiveTargetY;
+
+      // 5. True Vector-Normalized Kinematic Physics
       const dx = effectiveTargetX - motion.currentX;
       const dy = effectiveTargetY - motion.currentY;
-      const dist = Math.hypot(dx, dy);
-      const speed = Math.hypot(motion.vx, motion.vy);
+      const distance = Math.hypot(dx, dy);
+      const currentSpeed = Math.hypot(motion.vx, motion.vy);
 
-      // Settle check: within 0.25px and speed under 0.25px/s with offsets settled
-      const isSettled =
-        dist < settleThreshold &&
-        speed < settleThreshold &&
-        Math.abs(dynamicOffsetY) < 0.5 &&
-        Math.abs(dynamicOffsetX) < 0.5;
+      // Settle check: within settle threshold and velocity near zero
+      const isSettled = distance <= settleThreshold && currentSpeed <= 1.0;
 
       if (isSettled) {
-        // Snap cleanly to rest and zero velocities (preserving last direction!)
-        motion.currentX = tracking.targetX;
-        motion.currentY = tracking.targetY;
+        motion.currentX = effectiveTargetX;
+        motion.currentY = effectiveTargetY;
         motion.vx = 0;
         motion.vy = 0;
-        dynamicOffsetX = 0;
-        dynamicOffsetY = 0;
+        // Direction is preserved!
       } else {
-        // 3. Second-Order Damped Spring Physics with Acceleration Clamping
-        const effectiveStiffness = tracking.isReducedMotion ? 18 : stiffness;
-        const effectiveDamping = tracking.isReducedMotion
-          ? 2 * Math.sqrt(18 * mass)
-          : damping;
+        // Normalized displacement vector
+        const dirX = distance > 0 ? dx / distance : 0;
+        const dirY = distance > 0 ? dy / distance : 0;
 
-        const fx = effectiveStiffness * dx - effectiveDamping * motion.vx;
-        const fy = effectiveStiffness * dy - effectiveDamping * motion.vy;
+        // Kinematic Arrival Deceleration Curve
+        const effectiveMaxSpeed = tracking.isReducedMotion ? maxSpeed * 0.55 : maxSpeed;
+        const effectiveMaxAccel = tracking.isReducedMotion ? maxAcceleration * 0.5 : maxAcceleration;
+        const effectiveMaxDecel = tracking.isReducedMotion
+          ? maxDeceleration * 0.6
+          : maxDeceleration;
 
-        // Semi-implicit Euler integration: v_{t+1} = v_t + a*dt
-        let ax = fx / mass;
-        let ay = fy / mass;
-
-        // Acceleration Clamping: prevents violent launches so the dog ramps up gently
-        const currentAccel = Math.hypot(ax, ay);
-        const effectiveMaxAccel = tracking.isReducedMotion
-          ? maxAcceleration * 0.6
-          : maxAcceleration;
-        if (currentAccel > effectiveMaxAccel) {
-          const accelRatio = effectiveMaxAccel / currentAccel;
-          ax *= accelRatio;
-          ay *= accelRatio;
+        let desiredSpeed: number;
+        if (distance >= decelRadius) {
+          desiredSpeed = effectiveMaxSpeed;
+        } else {
+          // Smooth ease-out quadratic deceleration curve: v = v_max * sqrt(d / d_decel)
+          const ratio = Math.max(0, distance / decelRadius);
+          desiredSpeed = effectiveMaxSpeed * Math.sqrt(ratio);
         }
 
-        motion.vx += ax * dt;
-        motion.vy += ay * dt;
+        // Target velocity vector aligned with normalized direction
+        const targetVx = dirX * desiredSpeed;
+        const targetVy = dirY * desiredSpeed;
 
-        // Velocity Clamping to enforce max speed ceiling
-        const stepSpeed = Math.hypot(motion.vx, motion.vy);
-        const effectiveMaxSpeed = tracking.isReducedMotion
-          ? maxSpeed * 0.7
-          : maxSpeed;
-        if (stepSpeed > effectiveMaxSpeed) {
-          const ratio = effectiveMaxSpeed / stepSpeed;
-          motion.vx *= ratio;
-          motion.vy *= ratio;
+        // Smooth velocity steering towards target velocity
+        const diffVx = targetVx - motion.vx;
+        const diffVy = targetVy - motion.vy;
+        const diffSpeed = Math.hypot(diffVx, diffVy);
+
+        const isBraking = desiredSpeed < currentSpeed;
+        const maxDeltaV = (isBraking ? effectiveMaxDecel : effectiveMaxAccel) * dt;
+
+        if (diffSpeed <= maxDeltaV) {
+          motion.vx = targetVx;
+          motion.vy = targetVy;
+        } else {
+          const steerScale = maxDeltaV / diffSpeed;
+          motion.vx += diffVx * steerScale;
+          motion.vy += diffVy * steerScale;
         }
 
-        // Position integration: x_{t+1} = x_t + v_{t+1}*dt
+        // Frame-rate independent Euler position update
         motion.currentX += motion.vx * dt;
         motion.currentY += motion.vy * dt;
 
-        // 4. 8-Directional Movement Classification with Hysteresis
+        // Boundary collision clamping
+        motion.currentX = Math.max(minX, Math.min(maxX, motion.currentX));
+        motion.currentY = Math.max(minY, Math.min(maxY, motion.currentY));
+
+        // 6. 8-Directional Movement Classification
+        const stepSpeed = Math.hypot(motion.vx, motion.vy);
         if (stepSpeed > walkExitThreshold) {
           const nextDir = classifyDirection(
             motion.vx,
@@ -314,7 +304,7 @@ export function useDogMotion(
                 oldSector.centerDeg,
                 newSector.centerDeg
               );
-              // Trigger turnaround animation for sharp turns (>= 90 degrees)
+              // Trigger turnaround dynamic crouch for sharp turns (>= 90 degrees)
               if (turnAngle >= 90) {
                 turnStartTime = now;
               }
@@ -338,53 +328,62 @@ export function useDogMotion(
         }
       }
 
-      // 5. Animation State Machine with Hysteresis
-      const currentSpeed = isSettled ? 0 : speed;
-      motion.speed = currentSpeed;
+      // 7. Animation State Machine with Hysteresis
+      const updatedSpeed = Math.hypot(motion.vx, motion.vy);
+      const effectiveSpeed = isSettled ? 0 : updatedSpeed;
+      motion.speed = effectiveSpeed;
 
       const isTurning =
         turnStartTime !== null &&
-        now - turnStartTime < 240 &&
+        now - turnStartTime < 120 &&
         !tracking.isReducedMotion;
 
-      if (turnStartTime !== null && now - turnStartTime >= 240) {
+      if (turnStartTime !== null && now - turnStartTime >= 120) {
         turnStartTime = null;
       }
       motion.isTurning = isTurning;
 
       let nextState = currentAnimState;
 
-      if (currentAnimState === "running") {
-        if (currentSpeed < runExitThreshold) {
-          nextState = "walking";
-        }
-      } else if (currentAnimState === "walking") {
-        if (currentSpeed >= runSpeedThreshold) {
-          nextState = "running";
-        } else if (currentSpeed < walkExitThreshold) {
+      if (isSettled) {
+        // Stationary state machine
+        if (currentAnimState === "sitting") {
+          // Stay sitting while settled
+          nextState = "sitting";
+        } else if (currentAnimState !== "idle") {
+          // Immediately enter idle upon settling and mark stationary start
           nextState = "idle";
           stationaryStartTime = now;
-        }
-      } else if (currentAnimState === "idle") {
-        if (currentSpeed >= runSpeedThreshold) {
-          nextState = "running";
-        } else if (currentSpeed >= walkSpeedThreshold) {
-          nextState = "walking";
         } else {
-          // Stationary counting towards sitting pose
+          // In idle: transition to sitting once sitDelayMs expires
           if (stationaryStartTime === null) {
             stationaryStartTime = now;
           } else if (now - stationaryStartTime >= sitDelayMs) {
             nextState = "sitting";
           }
         }
-      } else if (currentAnimState === "sitting") {
-        if (currentSpeed >= runSpeedThreshold) {
-          nextState = "running";
-          stationaryStartTime = null;
-        } else if (currentSpeed >= walkSpeedThreshold) {
-          nextState = "walking";
-          stationaryStartTime = null;
+      } else {
+        // Active movement state machine with hysteresis
+        stationaryStartTime = null;
+
+        if (currentAnimState === "running") {
+          if (effectiveSpeed < runExitThreshold) {
+            nextState = "walking";
+          }
+        } else if (currentAnimState === "walking") {
+          if (effectiveSpeed >= runSpeedThreshold) {
+            nextState = "running";
+          } else if (effectiveSpeed < walkExitThreshold) {
+            nextState = "idle";
+            stationaryStartTime = now;
+          }
+        } else {
+          // Starting motion from idle or sitting
+          if (effectiveSpeed >= runSpeedThreshold) {
+            nextState = "running";
+          } else if (effectiveSpeed >= walkSpeedThreshold) {
+            nextState = "walking";
+          }
         }
       }
 
@@ -417,7 +416,7 @@ export function useDogMotion(
         onStateChange?.(nextState, isTurning, motion.direction);
       }
 
-      // 6. Hardware-Accelerated DOM Translation Update (Pure 3D translate, no artificial tilt)
+      // 8. Hardware-Accelerated DOM Translation Update (Pure 3D translate)
       if (elementRef.current && (!isSettled || !wasSettled)) {
         const x = motion.currentX.toFixed(2);
         const y = motion.currentY.toFixed(2);
@@ -426,7 +425,7 @@ export function useDogMotion(
 
       wasSettled = isSettled;
 
-      // 7. Motion Step Callback (Personality, Paw Trail, Chase Tracking)
+      // 9. Motion Step Callback (Personality, Paw Trail, Chase Tracking)
       onMotionStep?.({
         currentX: motion.currentX,
         currentY: motion.currentY,
